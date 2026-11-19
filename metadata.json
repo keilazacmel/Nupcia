@@ -1,0 +1,6 @@
+{
+  "name": "Nupcia",
+  "description": "Plataforma integral de planificación de bodas con asistente IA de presupuesto dinámico, descubrimiento geoespacial de proveedores, portal B2B con generación automática de tareas, RSVP, mesa de regalos y editor de papelería.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

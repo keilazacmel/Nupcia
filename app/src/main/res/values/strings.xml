@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Nupcia</string>
+    <string name="auth_tagline">Planificación editorial de bodas, presupuesto inteligente y proveedores locales en un solo lugar.</string>
+    <string name="auth_google_button">Continuar con Google</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_ai">Asistente IA</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_event">Evento</string>
+    <string name="nav_vendor">Proveedor</string>
+    <string name="onboarding_title">Diseña la visión de tu boda</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_sign_out">Cerrar sesión</string>
+    <string name="action_switch_vendor">Cambiar a Portal Proveedor</string>
+    <string name="action_switch_couple">Cambiar a Portal Pareja</string>
+</resources>

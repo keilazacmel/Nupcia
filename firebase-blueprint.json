@@ -1,0 +1,298 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user workspace mode and onboarding status.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID matching document ID." },
+        "displayName": { "type": "string", "description": "User display name." },
+        "workspaceMode": { "type": "string", "enum": ["COUPLE", "VENDOR"], "description": "Active portal workspace mode." },
+        "onboardingDone": { "type": "boolean", "description": "Whether bridal or vendor onboarding has been completed." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp set via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp set via FieldValue.serverTimestamp()." }
+      },
+      "required": ["userId", "displayName", "workspaceMode", "onboardingDone", "createdAt", "updatedAt"]
+    },
+    "Wedding": {
+      "title": "Wedding",
+      "description": "Couple wedding profile, bridal onboarding preferences, priorities, and wedding website settings.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "brideName": { "type": "string" },
+        "partnerName": { "type": "string" },
+        "weddingDate": { "type": "string" },
+        "city": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "totalBudget": { "type": "number" },
+        "estimatedGuests": { "type": "integer" },
+        "slug": { "type": "string" },
+        "selectedSuiteId": { "type": "string" },
+        "styleTags": { "type": "array" },
+        "colorPalette": { "type": "array" },
+        "ceremonyType": { "type": "string" },
+        "visionExpectations": { "type": "string" },
+        "priorityOrder": { "type": "array" },
+        "websiteHeadline": { "type": "string" },
+        "websiteStory": { "type": "string" },
+        "websiteVenueName": { "type": "string" },
+        "websiteSchedule": { "type": "string" },
+        "websiteProtected": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "ownerId", "brideName", "partnerName", "weddingDate", "city", "lat", "lng",
+        "totalBudget", "estimatedGuests", "slug", "selectedSuiteId", "styleTags",
+        "colorPalette", "ceremonyType", "visionExpectations", "priorityOrder",
+        "websiteHeadline", "websiteStory", "websiteVenueName", "websiteSchedule",
+        "websiteProtected", "createdAt", "updatedAt"
+      ]
+    },
+    "BudgetAllocation": {
+      "title": "BudgetAllocation",
+      "description": "Category-level budget allocation weighted by bridal priority ranking.",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "allocatedAmount": { "type": "number" },
+        "spentAmount": { "type": "number" },
+        "priorityRank": { "type": "integer" },
+        "locked": { "type": "boolean" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["category", "allocatedAmount", "spentAmount", "priorityRank", "locked", "notes", "createdAt", "updatedAt"]
+    },
+    "Guest": {
+      "title": "Guest",
+      "description": "Wedding guest and household record with RSVP, meal choice, dietary notes, postal address, and seating table.",
+      "type": "object",
+      "properties": {
+        "householdName": { "type": "string" },
+        "fullName": { "type": "string" },
+        "partySize": { "type": "integer" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "postalAddress": { "type": "string" },
+        "rsvpStatus": { "type": "string", "enum": ["PENDING", "CONFIRMED", "DECLINED"] },
+        "mealChoice": { "type": "string" },
+        "dietaryNotes": { "type": "string" },
+        "tableNumber": { "type": "integer" },
+        "inviteToken": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "householdName", "fullName", "partySize", "email", "phone", "postalAddress",
+        "rsvpStatus", "mealChoice", "dietaryNotes", "tableNumber", "inviteToken",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "RegistryItem": {
+      "title": "RegistryItem",
+      "description": "Physical wedding gift or cash fund contribution tracker.",
+      "type": "object",
+      "properties": {
+        "itemType": { "type": "string", "enum": ["PRODUCT", "CASH_FUND"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "targetAmount": { "type": "number" },
+        "collectedAmount": { "type": "number" },
+        "contributorCount": { "type": "integer" },
+        "lastContributorName": { "type": "string" },
+        "thankYouSent": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "itemType", "title", "description", "targetAmount", "collectedAmount",
+        "contributorCount", "lastContributorName", "thankYouSent", "createdAt", "updatedAt"
+      ]
+    },
+    "StationeryDesign": {
+      "title": "StationeryDesign",
+      "description": "Customizable wedding stationery scene with suite styling, bleed validation, and proof approval.",
+      "type": "object",
+      "properties": {
+        "suiteId": { "type": "string" },
+        "productType": { "type": "string", "enum": ["INVITATION", "SAVE_THE_DATE", "MENU", "ENVELOPE"] },
+        "headline": { "type": "string" },
+        "subheadline": { "type": "string" },
+        "bodyText": { "type": "string" },
+        "bgColorHex": { "type": "string" },
+        "accentColorHex": { "type": "string" },
+        "fontStyle": { "type": "string" },
+        "bleedValid": { "type": "boolean" },
+        "proofApproved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "suiteId", "productType", "headline", "subheadline", "bodyText",
+        "bgColorHex", "accentColorHex", "fontStyle", "bleedValid", "proofApproved",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "VendorProfile": {
+      "title": "VendorProfile",
+      "description": "Public marketplace vendor business listing with geospatial coordinates and coverage radius.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "businessName": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "city": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "coverageRadiusKm": { "type": "number" },
+        "minPrice": { "type": "number" },
+        "maxPrice": { "type": "number" },
+        "styleTags": { "type": "array" },
+        "ratingAvg": { "type": "number" },
+        "completedEventsCount": { "type": "integer" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "ownerId", "businessName", "category", "description", "city", "lat", "lng",
+        "coverageRadiusKm", "minPrice", "maxPrice", "styleTags", "ratingAvg",
+        "completedEventsCount", "published", "createdAt", "updatedAt"
+      ]
+    },
+    "VendorCatalogItem": {
+      "title": "VendorCatalogItem",
+      "description": "Service package offered by a wedding vendor.",
+      "type": "object",
+      "properties": {
+        "vendorOwnerId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "pricingUnit": { "type": "string" },
+        "active": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "vendorOwnerId", "title", "description", "basePrice", "pricingUnit",
+        "active", "published", "createdAt", "updatedAt"
+      ]
+    },
+    "ServiceRequest": {
+      "title": "ServiceRequest",
+      "description": "Booking inquiry and status negotiation between a couple and a vendor.",
+      "type": "object",
+      "properties": {
+        "coupleId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "vendorOwnerId": { "type": "string" },
+        "coupleName": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "category": { "type": "string" },
+        "catalogItemTitle": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "proposedBudget": { "type": "number" },
+        "counterOfferBudget": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "ACCEPTED", "REJECTED", "COUNTERED", "COMPLETED", "CANCELLED"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "coupleId", "vendorId", "vendorOwnerId", "coupleName", "vendorName",
+        "category", "catalogItemTitle", "eventDate", "proposedBudget",
+        "counterOfferBudget", "notes", "status", "createdAt", "updatedAt"
+      ]
+    },
+    "VendorTask": {
+      "title": "VendorTask",
+      "description": "Operational vendor task automatically created when a service request is accepted.",
+      "type": "object",
+      "properties": {
+        "serviceRequestId": { "type": "string" },
+        "coupleName": { "type": "string" },
+        "category": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"] },
+        "milestone": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "serviceRequestId", "coupleName", "category", "title", "description",
+        "dueDate", "eventDate", "status", "milestone", "createdAt", "updatedAt"
+      ]
+    },
+    "VendorCalendarBlock": {
+      "title": "VendorCalendarBlock",
+      "description": "Booked event date or manual calendar block for a vendor.",
+      "type": "object",
+      "properties": {
+        "serviceRequestId": { "type": "string" },
+        "title": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "blockType": { "type": "string", "enum": ["BOOKED", "MANUAL_BLOCK"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["serviceRequestId", "title", "startDate", "endDate", "blockType", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-scoped user preferences and active workspace mode."
+    },
+    "/weddings/{weddingId}": {
+      "schema": { "$ref": "#/entities/Wedding" },
+      "description": "Owner-scoped couple wedding details, aesthetic vision, priority ranking, and wedding website config."
+    },
+    "/users/{userId}/budgetAllocations/{allocationId}": {
+      "schema": { "$ref": "#/entities/BudgetAllocation" },
+      "description": "Owner-scoped wedding budget allocations by category."
+    },
+    "/users/{userId}/guests/{guestId}": {
+      "schema": { "$ref": "#/entities/Guest" },
+      "description": "Owner-scoped household and guest RSVP, dietary, address, and seating records."
+    },
+    "/users/{userId}/registryItems/{itemId}": {
+      "schema": { "$ref": "#/entities/RegistryItem" },
+      "description": "Owner-scoped wedding gift registry and cash funds."
+    },
+    "/users/{userId}/stationeryDesigns/{designId}": {
+      "schema": { "$ref": "#/entities/StationeryDesign" },
+      "description": "Owner-scoped customizable stationery suite designs."
+    },
+    "/users/{userId}/vendorTasks/{taskId}": {
+      "schema": { "$ref": "#/entities/VendorTask" },
+      "description": "Owner-scoped operational tasks for vendors generated from accepted requests."
+    },
+    "/users/{userId}/calendarBlocks/{blockId}": {
+      "schema": { "$ref": "#/entities/VendorCalendarBlock" },
+      "description": "Owner-scoped vendor booked dates and manual blocks."
+    },
+    "/vendors/{vendorId}": {
+      "schema": { "$ref": "#/entities/VendorProfile" },
+      "description": "Public marketplace vendor business profiles for geospatial and AI discovery."
+    },
+    "/vendors/{vendorId}/catalogItems/{itemId}": {
+      "schema": { "$ref": "#/entities/VendorCatalogItem" },
+      "description": "Service packages offered under a vendor profile."
+    },
+    "/serviceRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/ServiceRequest" },
+      "description": "Couple-to-vendor service requests with atomic status transitions."
+    }
+  }
+}

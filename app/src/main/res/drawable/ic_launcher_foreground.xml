@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Interlocking wedding rings + diamond crest centered inside 66dp safe zone (21..87) -->
+    <!-- Left Ring -->
+    <path
+        android:fillColor="#FFF5E6"
+        android:pathData="M43,43c-9.94,0 -18,8.06 -18,18s8.06,18 18,18s18,-8.06 18,-18S52.94,43 43,43zM43,73.5c-6.9,0 -12.5,-5.6 -12.5,-12.5S36.1,48.5 43,48.5S55.5,54.1 55.5,61S49.9,73.5 43,73.5z" />
+    <!-- Right Ring -->
+    <path
+        android:fillColor="#E2C07D"
+        android:pathData="M65,43c-9.94,0 -18,8.06 -18,18s8.06,18 18,18s18,-8.06 18,-18S74.94,43 65,43zM65,73.5c-6.9,0 -12.5,-5.6 -12.5,-12.5S58.1,48.5 65,48.5S77.5,54.1 77.5,61S71.9,73.5 65,73.5z" />
+    <!-- Diamond Solitaire Crest -->
+    <path
+        android:fillColor="#FFFDF9"
+        android:pathData="M54,27L61.5,34.5L54,42L46.5,34.5Z" />
+</vector>

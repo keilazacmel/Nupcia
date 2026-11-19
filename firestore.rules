@@ -1,0 +1,490 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidStringList(val, maxItems) {
+      return val is list && val.size() <= maxItems && (val.size() == 0 || val[0] is string);
+    }
+
+    // --- Entity Validation Helpers ---
+    function isValidUserProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             isValidString(data.displayName, 1, 80) &&
+             data.workspaceMode in ['COUPLE', 'VENDOR'] &&
+             data.onboardingDone is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidWedding(data) {
+      return data.ownerId is string &&
+             data.ownerId == request.auth.uid &&
+             isValidString(data.brideName, 1, 80) &&
+             isValidString(data.partnerName, 1, 80) &&
+             isValidString(data.weddingDate, 4, 30) &&
+             isValidString(data.city, 1, 100) &&
+             data.lat is number && data.lat >= -90 && data.lat <= 90 &&
+             data.lng is number && data.lng >= -180 && data.lng <= 180 &&
+             data.totalBudget is number && data.totalBudget >= 0 && data.totalBudget <= 50000000 &&
+             data.estimatedGuests is int && data.estimatedGuests >= 1 && data.estimatedGuests <= 5000 &&
+             isValidString(data.slug, 1, 80) &&
+             isValidString(data.selectedSuiteId, 1, 60) &&
+             isValidStringList(data.styleTags, 8) &&
+             isValidStringList(data.colorPalette, 6) &&
+             isValidString(data.ceremonyType, 1, 60) &&
+             isValidString(data.visionExpectations, 0, 1000) &&
+             isValidStringList(data.priorityOrder, 10) &&
+             isValidString(data.websiteHeadline, 0, 140) &&
+             isValidString(data.websiteStory, 0, 2000) &&
+             isValidString(data.websiteVenueName, 0, 120) &&
+             isValidString(data.websiteSchedule, 0, 1500) &&
+             data.websiteProtected is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBudgetAllocation(data) {
+      return isValidString(data.category, 1, 60) &&
+             data.allocatedAmount is number && data.allocatedAmount >= 0 && data.allocatedAmount <= 50000000 &&
+             data.spentAmount is number && data.spentAmount >= 0 && data.spentAmount <= 50000000 &&
+             data.priorityRank is int && data.priorityRank >= 1 && data.priorityRank <= 12 &&
+             data.locked is bool &&
+             isValidString(data.notes, 0, 400) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidGuest(data) {
+      return isValidString(data.householdName, 1, 80) &&
+             isValidString(data.fullName, 1, 80) &&
+             data.partySize is int && data.partySize >= 1 && data.partySize <= 20 &&
+             isValidString(data.email, 0, 120) &&
+             isValidString(data.phone, 0, 40) &&
+             isValidString(data.postalAddress, 0, 240) &&
+             data.rsvpStatus in ['PENDING', 'CONFIRMED', 'DECLINED'] &&
+             isValidString(data.mealChoice, 0, 80) &&
+             isValidString(data.dietaryNotes, 0, 200) &&
+             data.tableNumber is int && data.tableNumber >= 0 && data.tableNumber <= 100 &&
+             isValidString(data.inviteToken, 4, 40) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidRegistryItem(data) {
+      return data.itemType in ['PRODUCT', 'CASH_FUND'] &&
+             isValidString(data.title, 1, 100) &&
+             isValidString(data.description, 0, 400) &&
+             data.targetAmount is number && data.targetAmount >= 1 && data.targetAmount <= 10000000 &&
+             data.collectedAmount is number && data.collectedAmount >= 0 && data.collectedAmount <= 10000000 &&
+             data.contributorCount is int && data.contributorCount >= 0 && data.contributorCount <= 5000 &&
+             isValidString(data.lastContributorName, 0, 80) &&
+             data.thankYouSent is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidStationeryDesign(data) {
+      return isValidString(data.suiteId, 1, 60) &&
+             data.productType in ['INVITATION', 'SAVE_THE_DATE', 'MENU', 'ENVELOPE'] &&
+             isValidString(data.headline, 1, 120) &&
+             isValidString(data.subheadline, 0, 120) &&
+             isValidString(data.bodyText, 0, 600) &&
+             isValidString(data.bgColorHex, 7, 9) &&
+             isValidString(data.accentColorHex, 7, 9) &&
+             isValidString(data.fontStyle, 1, 40) &&
+             data.bleedValid is bool &&
+             data.proofApproved is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidVendorTask(data) {
+      return isValidString(data.serviceRequestId, 0, 128) &&
+             isValidString(data.coupleName, 1, 100) &&
+             isValidString(data.category, 1, 60) &&
+             isValidString(data.title, 1, 120) &&
+             isValidString(data.description, 0, 500) &&
+             isValidString(data.dueDate, 4, 30) &&
+             isValidString(data.eventDate, 4, 30) &&
+             data.status in ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] &&
+             data.milestone is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCalendarBlock(data) {
+      return isValidString(data.serviceRequestId, 0, 128) &&
+             isValidString(data.title, 1, 120) &&
+             isValidString(data.startDate, 4, 30) &&
+             isValidString(data.endDate, 4, 30) &&
+             data.blockType in ['BOOKED', 'MANUAL_BLOCK'] &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidVendorProfile(data) {
+      return data.ownerId is string &&
+             data.ownerId == request.auth.uid &&
+             isValidString(data.businessName, 1, 100) &&
+             isValidString(data.category, 1, 60) &&
+             isValidString(data.description, 0, 800) &&
+             isValidString(data.city, 1, 100) &&
+             data.lat is number && data.lat >= -90 && data.lat <= 90 &&
+             data.lng is number && data.lng >= -180 && data.lng <= 180 &&
+             data.coverageRadiusKm is number && data.coverageRadiusKm >= 1 && data.coverageRadiusKm <= 2000 &&
+             data.minPrice is number && data.minPrice >= 0 && data.minPrice <= 50000000 &&
+             data.maxPrice is number && data.maxPrice >= data.minPrice && data.maxPrice <= 50000000 &&
+             isValidStringList(data.styleTags, 8) &&
+             data.ratingAvg is number && data.ratingAvg >= 0 && data.ratingAvg <= 5 &&
+             data.completedEventsCount is int && data.completedEventsCount >= 0 && data.completedEventsCount <= 10000 &&
+             data.published is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCatalogItem(data) {
+      return data.vendorOwnerId is string &&
+             data.vendorOwnerId == request.auth.uid &&
+             isValidString(data.title, 1, 100) &&
+             isValidString(data.description, 0, 500) &&
+             data.basePrice is number && data.basePrice >= 0 && data.basePrice <= 50000000 &&
+             isValidString(data.pricingUnit, 1, 50) &&
+             data.active is bool &&
+             data.published is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidServiceRequest(data) {
+      return isValidId(data.coupleId) &&
+             isValidId(data.vendorId) &&
+             isValidId(data.vendorOwnerId) &&
+             isValidString(data.coupleName, 1, 100) &&
+             isValidString(data.vendorName, 1, 100) &&
+             isValidString(data.category, 1, 60) &&
+             isValidString(data.catalogItemTitle, 1, 100) &&
+             isValidString(data.eventDate, 4, 30) &&
+             data.proposedBudget is number && data.proposedBudget >= 0 && data.proposedBudget <= 50000000 &&
+             data.counterOfferBudget is number && data.counterOfferBudget >= 0 && data.counterOfferBudget <= 50000000 &&
+             isValidString(data.notes, 0, 600) &&
+             data.status in ['PENDING', 'ACCEPTED', 'REJECTED', 'COUNTERED', 'COMPLETED', 'CANCELLED'] &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    // --- Collection Rules ---
+
+    // 1. User Profile & Owner-Scoped Subcollections
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'workspaceMode', 'onboardingDone', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'workspaceMode', 'onboardingDone', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'workspaceMode', 'onboardingDone', 'updatedAt']);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Budget Allocations
+      match /budgetAllocations/{allocationId} {
+        allow get: if isOwner(userId) && isValidId(allocationId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(allocationId) &&
+                         incoming().keys().hasAll(['category', 'allocatedAmount', 'spentAmount', 'priorityRank', 'locked', 'notes', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['category', 'allocatedAmount', 'spentAmount', 'priorityRank', 'locked', 'notes', 'createdAt', 'updatedAt']) &&
+                         isValidBudgetAllocation(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(allocationId) &&
+                         isValidBudgetAllocation(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['category', 'allocatedAmount', 'spentAmount', 'priorityRank', 'locked', 'notes', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(allocationId);
+      }
+
+      // Guests & Households (Strict PII isolation)
+      match /guests/{guestId} {
+        allow get: if isOwner(userId) && isValidId(guestId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(guestId) &&
+                         incoming().keys().hasAll(['householdName', 'fullName', 'partySize', 'email', 'phone', 'postalAddress', 'rsvpStatus', 'mealChoice', 'dietaryNotes', 'tableNumber', 'inviteToken', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['householdName', 'fullName', 'partySize', 'email', 'phone', 'postalAddress', 'rsvpStatus', 'mealChoice', 'dietaryNotes', 'tableNumber', 'inviteToken', 'createdAt', 'updatedAt']) &&
+                         isValidGuest(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(guestId) &&
+                         isValidGuest(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['householdName', 'fullName', 'partySize', 'email', 'phone', 'postalAddress', 'rsvpStatus', 'mealChoice', 'dietaryNotes', 'tableNumber', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(guestId);
+      }
+
+      // Registry & Cash Funds
+      match /registryItems/{itemId} {
+        allow get: if isOwner(userId) && isValidId(itemId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(itemId) &&
+                         incoming().keys().hasAll(['itemType', 'title', 'description', 'targetAmount', 'collectedAmount', 'contributorCount', 'lastContributorName', 'thankYouSent', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['itemType', 'title', 'description', 'targetAmount', 'collectedAmount', 'contributorCount', 'lastContributorName', 'thankYouSent', 'createdAt', 'updatedAt']) &&
+                         isValidRegistryItem(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(itemId) &&
+                         isValidRegistryItem(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'targetAmount', 'collectedAmount', 'contributorCount', 'lastContributorName', 'thankYouSent', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(itemId);
+      }
+
+      // Stationery Designs
+      match /stationeryDesigns/{designId} {
+        allow get: if isOwner(userId) && isValidId(designId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(designId) &&
+                         incoming().keys().hasAll(['suiteId', 'productType', 'headline', 'subheadline', 'bodyText', 'bgColorHex', 'accentColorHex', 'fontStyle', 'bleedValid', 'proofApproved', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['suiteId', 'productType', 'headline', 'subheadline', 'bodyText', 'bgColorHex', 'accentColorHex', 'fontStyle', 'bleedValid', 'proofApproved', 'createdAt', 'updatedAt']) &&
+                         isValidStationeryDesign(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(designId) &&
+                         isValidStationeryDesign(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['suiteId', 'productType', 'headline', 'subheadline', 'bodyText', 'bgColorHex', 'accentColorHex', 'fontStyle', 'bleedValid', 'proofApproved', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(designId);
+      }
+
+      // Vendor Operational Tasks (Auto-generated when accepting a ServiceRequest)
+      match /vendorTasks/{taskId} {
+        allow get: if isOwner(userId) && isValidId(taskId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(taskId) &&
+                         incoming().keys().hasAll(['serviceRequestId', 'coupleName', 'category', 'title', 'description', 'dueDate', 'eventDate', 'status', 'milestone', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['serviceRequestId', 'coupleName', 'category', 'title', 'description', 'dueDate', 'eventDate', 'status', 'milestone', 'createdAt', 'updatedAt']) &&
+                         isValidVendorTask(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(taskId) &&
+                         isValidVendorTask(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'dueDate', 'status', 'milestone', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(taskId);
+      }
+
+      // Vendor Calendar Blocks
+      match /calendarBlocks/{blockId} {
+        allow get: if isOwner(userId) && isValidId(blockId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(blockId) &&
+                         incoming().keys().hasAll(['serviceRequestId', 'title', 'startDate', 'endDate', 'blockType', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['serviceRequestId', 'title', 'startDate', 'endDate', 'blockType', 'createdAt', 'updatedAt']) &&
+                         isValidCalendarBlock(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(blockId) &&
+                         isValidCalendarBlock(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'startDate', 'endDate', 'blockType', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(blockId);
+      }
+    }
+
+    // 2. Weddings (1:1 keyed by couple UID)
+    match /weddings/{weddingId} {
+      allow get: if isOwner(weddingId) && isValidId(weddingId);
+      allow create: if isOwner(weddingId) &&
+                       isValidId(weddingId) &&
+                       incoming().keys().hasAll([
+                         'ownerId', 'brideName', 'partnerName', 'weddingDate', 'city', 'lat', 'lng',
+                         'totalBudget', 'estimatedGuests', 'slug', 'selectedSuiteId', 'styleTags',
+                         'colorPalette', 'ceremonyType', 'visionExpectations', 'priorityOrder',
+                         'websiteHeadline', 'websiteStory', 'websiteVenueName', 'websiteSchedule',
+                         'websiteProtected', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'ownerId', 'brideName', 'partnerName', 'weddingDate', 'city', 'lat', 'lng',
+                         'totalBudget', 'estimatedGuests', 'slug', 'selectedSuiteId', 'styleTags',
+                         'colorPalette', 'ceremonyType', 'visionExpectations', 'priorityOrder',
+                         'websiteHeadline', 'websiteStory', 'websiteVenueName', 'websiteSchedule',
+                         'websiteProtected', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidWedding(incoming());
+      allow update: if isOwner(weddingId) &&
+                       isValidId(weddingId) &&
+                       isValidWedding(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action: Core wedding / onboarding / priorities update
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'brideName', 'partnerName', 'weddingDate', 'city', 'lat', 'lng',
+                           'totalBudget', 'estimatedGuests', 'slug', 'selectedSuiteId', 'styleTags',
+                           'colorPalette', 'ceremonyType', 'visionExpectations', 'priorityOrder', 'updatedAt'
+                         ]) ||
+                         // Action: Wedding Website customization update
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'selectedSuiteId', 'websiteHeadline', 'websiteStory', 'websiteVenueName',
+                           'websiteSchedule', 'websiteProtected', 'slug', 'updatedAt'
+                         ])
+                       );
+      allow delete: if isOwner(weddingId) && isValidId(weddingId);
+    }
+
+    // 3. Marketplace Vendor Profiles (Public business fields only, zero PII)
+    match /vendors/{vendorId} {
+      allow get: if isSignedIn() && isValidId(vendorId) && (existing().published == true || existing().ownerId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.published == true || resource.data.ownerId == request.auth.uid);
+      allow create: if isSignedIn() &&
+                       isValidId(vendorId) &&
+                       incoming().keys().hasAll([
+                         'ownerId', 'businessName', 'category', 'description', 'city', 'lat', 'lng',
+                         'coverageRadiusKm', 'minPrice', 'maxPrice', 'styleTags', 'ratingAvg',
+                         'completedEventsCount', 'published', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'ownerId', 'businessName', 'category', 'description', 'city', 'lat', 'lng',
+                         'coverageRadiusKm', 'minPrice', 'maxPrice', 'styleTags', 'ratingAvg',
+                         'completedEventsCount', 'published', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidVendorProfile(incoming());
+      allow update: if isSignedIn() &&
+                       isValidId(vendorId) &&
+                       existing().ownerId == request.auth.uid &&
+                       isValidVendorProfile(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'businessName', 'category', 'description', 'city', 'lat', 'lng',
+                         'coverageRadiusKm', 'minPrice', 'maxPrice', 'styleTags', 'ratingAvg',
+                         'completedEventsCount', 'published', 'updatedAt'
+                       ]);
+      allow delete: if isSignedIn() && isValidId(vendorId) && existing().ownerId == request.auth.uid;
+
+      // Vendor Service Catalog Items
+      match /catalogItems/{itemId} {
+        allow get: if isSignedIn() && isValidId(vendorId) && isValidId(itemId) && (existing().published == true || existing().vendorOwnerId == request.auth.uid);
+        allow list: if isSignedIn() && (resource.data.published == true || resource.data.vendorOwnerId == request.auth.uid);
+        allow create: if isSignedIn() &&
+                         isValidId(vendorId) &&
+                         isValidId(itemId) &&
+                         incoming().keys().hasAll(['vendorOwnerId', 'title', 'description', 'basePrice', 'pricingUnit', 'active', 'published', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['vendorOwnerId', 'title', 'description', 'basePrice', 'pricingUnit', 'active', 'published', 'createdAt', 'updatedAt']) &&
+                         isValidCatalogItem(incoming()) &&
+                         exists(/databases/$(database)/documents/vendors/$(vendorId)) &&
+                         get(/databases/$(database)/documents/vendors/$(vendorId)).data.ownerId == request.auth.uid;
+        allow update: if isSignedIn() &&
+                         isValidId(vendorId) &&
+                         isValidId(itemId) &&
+                         existing().vendorOwnerId == request.auth.uid &&
+                         isValidCatalogItem(incoming()) &&
+                         incoming().vendorOwnerId == existing().vendorOwnerId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'basePrice', 'pricingUnit', 'active', 'published', 'updatedAt']);
+        allow delete: if isSignedIn() && isValidId(vendorId) && isValidId(itemId) && existing().vendorOwnerId == request.auth.uid;
+      }
+    }
+
+    // 4. Service Requests (Couple <-> Vendor Interaction Collection with Terminal State Locking)
+    match /serviceRequests/{requestId} {
+      allow get: if isSignedIn() && isValidId(requestId) && (existing().coupleId == request.auth.uid || existing().vendorOwnerId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.coupleId == request.auth.uid || resource.data.vendorOwnerId == request.auth.uid);
+      allow create: if isSignedIn() &&
+                       isValidId(requestId) &&
+                       incoming().coupleId == request.auth.uid &&
+                       incoming().status == 'PENDING' &&
+                       incoming().keys().hasAll([
+                         'coupleId', 'vendorId', 'vendorOwnerId', 'coupleName', 'vendorName',
+                         'category', 'catalogItemTitle', 'eventDate', 'proposedBudget',
+                         'counterOfferBudget', 'notes', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'coupleId', 'vendorId', 'vendorOwnerId', 'coupleName', 'vendorName',
+                         'category', 'catalogItemTitle', 'eventDate', 'proposedBudget',
+                         'counterOfferBudget', 'notes', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidServiceRequest(incoming()) &&
+                       exists(/databases/$(database)/documents/vendors/$(incoming().vendorId));
+      allow update: if isSignedIn() &&
+                       isValidId(requestId) &&
+                       isValidServiceRequest(incoming()) &&
+                       incoming().coupleId == existing().coupleId &&
+                       incoming().vendorId == existing().vendorId &&
+                       incoming().vendorOwnerId == existing().vendorOwnerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       existing().status != 'COMPLETED' &&
+                       existing().status != 'CANCELLED' &&
+                       existing().status != 'REJECTED' &&
+                       (
+                         // Action 1: Vendor accepts, rejects, or marks accepted event as completed
+                         (
+                           existing().vendorOwnerId == request.auth.uid &&
+                           (
+                             (existing().status in ['PENDING', 'COUNTERED'] && incoming().status in ['ACCEPTED', 'REJECTED']) ||
+                             (existing().status == 'ACCEPTED' && incoming().status == 'COMPLETED')
+                           ) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+                         ) ||
+                         // Action 2: Vendor sends counteroffer
+                         (
+                           existing().vendorOwnerId == request.auth.uid &&
+                           existing().status == 'PENDING' &&
+                           incoming().status == 'COUNTERED' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'counterOfferBudget', 'notes', 'updatedAt'])
+                         ) ||
+                         // Action 3: Couple accepts counteroffer or cancels request
+                         (
+                           existing().coupleId == request.auth.uid &&
+                           (
+                             (existing().status == 'COUNTERED' && incoming().status == 'ACCEPTED') ||
+                             (existing().status in ['PENDING', 'COUNTERED', 'ACCEPTED'] && incoming().status == 'CANCELLED')
+                           ) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+                         )
+                       );
+      allow delete: if isSignedIn() &&
+                       isValidId(requestId) &&
+                       existing().coupleId == request.auth.uid &&
+                       existing().status == 'PENDING';
+    }
+  }
+}
