@@ -14,7 +14,10 @@ data class ScoredVendor(
     val withinCategoryBudget: Boolean,
     val affinityScore: Int, // 0..100
     val categoryBudgetAllocated: Double
-)
+) {
+    val distanceMiles: Double get() = distanceKm * 0.621371
+    val coverageRadiusMiles: Int get() = (vendor.coverageRadiusKm * 0.621371).roundToInt().coerceAtLeast(1)
+}
 
 data class ReadinessReport(
     val score: Int, // 0..100
@@ -56,14 +59,15 @@ object GeoMatchEngine {
         wedding: Wedding?,
         allocations: List<BudgetAllocation>
     ): ScoredVendor {
-        val wLat = wedding?.lat ?: 19.4326
-        val wLng = wedding?.lng ?: -99.1332
+        // Default fallback center: Provo, Utah County, UT
+        val wLat = wedding?.lat ?: 40.2338
+        val wLng = wedding?.lng ?: -111.6585
         val dist = distanceKm(wLat, wLng, vendor.lat, vendor.lng)
         val covers = dist <= vendor.coverageRadiusKm
 
         val catAlloc = allocations.firstOrNull {
             it.category.equals(vendor.category, ignoreCase = true)
-        }?.allocatedAmount ?: ((wedding?.totalBudget ?: 300000.0) * 0.12)
+        }?.allocatedAmount ?: ((wedding?.totalBudget ?: 35000.0) * 0.12)
 
         val withinBudget = vendor.minPrice <= catAlloc * 1.10
 
@@ -136,31 +140,31 @@ object GeoMatchEngine {
 
         val (title, subtitle, tab) = when {
             bookedTop < topPriorities.size -> {
-                val missing = topPriorities.firstOrNull { top -> bookedCats.none { it.equals(top, ignoreCase = true) } } ?: "tu prioridad #1"
+                val missing = topPriorities.firstOrNull { top -> bookedCats.none { it.equals(top, ignoreCase = true) } } ?: "your #1 priority"
                 Triple(
-                    "Asegura tu proveedor de $missing",
-                    "Es una de tus prioridades principales. Explora coincidencias en el mapa o pide ayuda al Asistente IA.",
+                    "Book your $missing vendor",
+                    "This is one of your top priorities. Explore Utah County matches on the map or ask the AI Concierge.",
                     2
                 )
             }
             guests.isEmpty() -> Triple(
-                "Registra tus primeros hogares e invitados",
-                "Agrega invitados para enviar enlaces de dirección postal y activar tu Seating Chart.",
+                "Add your first households & guests",
+                "Add guests to collect mailing addresses, track RSVPs, and unlock your Seating Chart.",
                 3
             )
             confirmedGuests > seatedGuests -> Triple(
-                "Asigna mesas a ${confirmedGuests - seatedGuests} invitados confirmados",
-                "Organiza tu plano de mesas y revisa restricciones alimentarias.",
+                "Assign tables for ${confirmedGuests - seatedGuests} confirmed guests",
+                "Organize your reception seating chart and review dietary notes.",
                 3
             )
             !hasApprovedProof -> Triple(
-                "Aprueba la prueba de tu papelería",
-                "Personaliza tu invitación coordinada y valida los márgenes de impresión.",
+                "Approve your wedding stationery proof",
+                "Customize your coordinated suite and verify print bleed safe zones.",
                 3
             )
             else -> Triple(
-                "Optimiza el saldo final con tu Asistente IA",
-                "Tu plan avanza excelente. Revisa oportunidades de mejora en tu presupuesto.",
+                "Fine-tune your final balance with AI Concierge",
+                "Your wedding plan is in great shape. Explore ways to optimize your remaining budget.",
                 1
             )
         }

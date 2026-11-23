@@ -372,7 +372,10 @@ service cloud.firestore {
 
     // 3. Marketplace Vendor Profiles (Public business fields only, zero PII)
     match /vendors/{vendorId} {
-      allow get: if isSignedIn() && isValidId(vendorId) && (existing().published == true || existing().ownerId == request.auth.uid);
+      allow get: if isSignedIn() && isValidId(vendorId) && (
+        (resource == null && vendorId == request.auth.uid) ||
+        (resource != null && (existing().published == true || existing().ownerId == request.auth.uid))
+      );
       allow list: if isSignedIn() && (resource.data.published == true || resource.data.ownerId == request.auth.uid);
       allow create: if isSignedIn() &&
                        isValidId(vendorId) &&
@@ -402,7 +405,10 @@ service cloud.firestore {
 
       // Vendor Service Catalog Items
       match /catalogItems/{itemId} {
-        allow get: if isSignedIn() && isValidId(vendorId) && isValidId(itemId) && (existing().published == true || existing().vendorOwnerId == request.auth.uid);
+        allow get: if isSignedIn() && isValidId(vendorId) && isValidId(itemId) && (
+          (resource == null && vendorId == request.auth.uid) ||
+          (resource != null && (existing().published == true || existing().vendorOwnerId == request.auth.uid))
+        );
         allow list: if isSignedIn() && (resource.data.published == true || resource.data.vendorOwnerId == request.auth.uid);
         allow create: if isSignedIn() &&
                          isValidId(vendorId) &&
@@ -426,7 +432,7 @@ service cloud.firestore {
 
     // 4. Service Requests (Couple <-> Vendor Interaction Collection with Terminal State Locking)
     match /serviceRequests/{requestId} {
-      allow get: if isSignedIn() && isValidId(requestId) && (existing().coupleId == request.auth.uid || existing().vendorOwnerId == request.auth.uid);
+      allow get: if isSignedIn() && isValidId(requestId) && resource != null && (existing().coupleId == request.auth.uid || existing().vendorOwnerId == request.auth.uid);
       allow list: if isSignedIn() && (resource.data.coupleId == request.auth.uid || resource.data.vendorOwnerId == request.auth.uid);
       allow create: if isSignedIn() &&
                        isValidId(requestId) &&
@@ -460,7 +466,7 @@ service cloud.firestore {
                            existing().vendorOwnerId == request.auth.uid &&
                            (
                              (existing().status in ['PENDING', 'COUNTERED'] && incoming().status in ['ACCEPTED', 'REJECTED']) ||
-                             (existing().status == 'ACCEPTED' && incoming().status == 'COMPLETED')
+                             (existing().status == 'ACCEPTED' && incoming().status in ['COMPLETED', 'CANCELLED'])
                            ) &&
                            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
                          ) ||

@@ -1,16 +1,16 @@
 <resources>
     <string name="app_name">Nupcia</string>
-    <string name="auth_tagline">Planificación editorial de bodas, presupuesto inteligente y proveedores locales en un solo lugar.</string>
-    <string name="auth_google_button">Continuar con Google</string>
-    <string name="nav_home">Inicio</string>
-    <string name="nav_ai">Asistente IA</string>
-    <string name="nav_map">Mapa</string>
-    <string name="nav_event">Evento</string>
-    <string name="nav_vendor">Proveedor</string>
-    <string name="onboarding_title">Diseña la visión de tu boda</string>
-    <string name="action_save">Guardar</string>
-    <string name="action_cancel">Cancelar</string>
-    <string name="action_sign_out">Cerrar sesión</string>
-    <string name="action_switch_vendor">Cambiar a Portal Proveedor</string>
-    <string name="action_switch_couple">Cambiar a Portal Pareja</string>
+    <string name="auth_tagline">Editorial wedding planning, smart budgeting, and local Utah County vendors in one place.</string>
+    <string name="auth_google_button">Continue with Google</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_ai">AI Concierge</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_event">Event</string>
+    <string name="nav_vendor">Vendor</string>
+    <string name="onboarding_title">Design your wedding vision</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_sign_out">Sign out</string>
+    <string name="action_switch_vendor">Switch to Vendor Portal</string>
+    <string name="action_switch_couple">Switch to Couple Portal</string>
 </resources>

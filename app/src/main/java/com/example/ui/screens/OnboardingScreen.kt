@@ -59,7 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.domain.BudgetRebalancer
@@ -88,25 +87,25 @@ fun OnboardingScreen(
     ) -> Unit
 ) {
     var step by remember { mutableIntStateOf(0) }
-    var brideName by remember { mutableStateOf(initialName.substringBefore(" ").ifBlank { "Camila" }) }
-    var partnerName by remember { mutableStateOf("Sebastián") }
+    var brideName by remember { mutableStateOf(initialName.substringBefore(" ").ifBlank { "Emma" }) }
+    var partnerName by remember { mutableStateOf("Liam") }
     var weddingDate by remember { mutableStateOf("2027-06-19") }
     var selectedCity by remember { mutableStateOf(DefaultWeddingCatalog.CITIES.first()) }
-    var budgetText by remember { mutableStateOf("350000") }
+    var budgetText by remember { mutableStateOf("35000") }
     var guestsText by remember { mutableStateOf("140") }
 
-    val selectedStyles = remember { mutableStateListOf("Jardín", "Clásico") }
+    val selectedStyles = remember { mutableStateListOf("Garden", "Classic") }
     var selectedPaletteName by remember { mutableStateOf(DefaultWeddingCatalog.COLOR_PALETTES.keys.first()) }
     var selectedCeremony by remember { mutableStateOf(DefaultWeddingCatalog.CEREMONY_TYPES.first()) }
     var visionExpectations by remember {
-        mutableStateOf("Una celebración luminosa, gastronomía memorable y fotografía editorial atemporal.")
+        mutableStateOf("A luminous mountain-view garden celebration with seasonal dining and timeless editorial photography.")
     }
 
     val priorityOrder = remember {
         mutableStateListOf<String>().apply { addAll(DefaultWeddingCatalog.CATEGORIES) }
     }
 
-    val parsedBudget = budgetText.toDoubleOrNull()?.coerceIn(10000.0, 50000000.0) ?: 350000.0
+    val parsedBudget = budgetText.toDoubleOrNull()?.coerceIn(1000.0, 50000000.0) ?: 35000.0
     val previewAllocations = remember(parsedBudget, priorityOrder.toList()) {
         BudgetRebalancer.computeInitialAllocations(parsedBudget, priorityOrder.toList())
     }
@@ -132,7 +131,7 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Paso ${step + 1} de 3",
+                    text = "Step ${step + 1} of 3",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -142,7 +141,7 @@ fun OnboardingScreen(
                 ) {
                     Icon(Icons.Default.Storefront, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Soy Proveedor")
+                    Text("I'm a Vendor")
                 }
             }
 
@@ -172,12 +171,12 @@ fun OnboardingScreen(
                     when (currentStep) {
                         0 -> {
                             Text(
-                                text = "Comencemos con tu historia",
+                                text = "Let's start with your story",
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
-                                text = "Estos datos calibran tu presupuesto inteligente, el mapa geoespacial y tu sitio de boda.",
+                                text = "These details calibrate your smart wedding budget, Utah County vendor map, and wedding website.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -185,7 +184,7 @@ fun OnboardingScreen(
                                 OutlinedTextField(
                                     value = brideName,
                                     onValueChange = { brideName = it },
-                                    label = { Text("Tu nombre") },
+                                    label = { Text("Your name") },
                                     singleLine = true,
                                     modifier = Modifier
                                         .weight(1f)
@@ -194,7 +193,7 @@ fun OnboardingScreen(
                                 OutlinedTextField(
                                     value = partnerName,
                                     onValueChange = { partnerName = it },
-                                    label = { Text("Tu pareja") },
+                                    label = { Text("Partner's name") },
                                     singleLine = true,
                                     modifier = Modifier
                                         .weight(1f)
@@ -205,14 +204,14 @@ fun OnboardingScreen(
                                 OutlinedTextField(
                                     value = weddingDate,
                                     onValueChange = { weddingDate = it },
-                                    label = { Text("Fecha (AAAA-MM-DD)") },
+                                    label = { Text("Date (YYYY-MM-DD)") },
                                     singleLine = true,
                                     modifier = Modifier.weight(1f)
                                 )
                                 OutlinedTextField(
                                     value = guestsText,
                                     onValueChange = { guestsText = it.filter(Char::isDigit) },
-                                    label = { Text("Invitados est.") },
+                                    label = { Text("Est. guests") },
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f)
@@ -221,7 +220,7 @@ fun OnboardingScreen(
                             OutlinedTextField(
                                 value = budgetText,
                                 onValueChange = { budgetText = it.filter(Char::isDigit) },
-                                label = { Text("Presupuesto total estimado (MXN/USD)") },
+                                label = { Text("Estimated total budget (USD)") },
                                 singleLine = true,
                                 prefix = { Text("$") },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -231,7 +230,7 @@ fun OnboardingScreen(
                             )
 
                             Text(
-                                text = "Ciudad del evento (geocodificación para mapa)",
+                                text = "Utah County wedding location",
                                 style = MaterialTheme.typography.titleSmall
                             )
                             FlowRow(
@@ -250,16 +249,16 @@ fun OnboardingScreen(
 
                         1 -> {
                             Text(
-                                text = "Visión estética y expectativas",
+                                text = "Aesthetic vision & expectations",
                                 style = MaterialTheme.typography.headlineMedium
                             )
                             Text(
-                                text = "Adaptaremos tus plantillas de papelería, sitio web y afinidad de proveedores.",
+                                text = "We tailor your stationery suite, wedding website, and vendor affinity scores to match your style.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            Text("Estilos que te enamoran", style = MaterialTheme.typography.titleSmall)
+                            Text("Wedding styles you love", style = MaterialTheme.typography.titleSmall)
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -280,7 +279,7 @@ fun OnboardingScreen(
                                 }
                             }
 
-                            Text("Paleta de colores", style = MaterialTheme.typography.titleSmall)
+                            Text("Color palette", style = MaterialTheme.typography.titleSmall)
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 DefaultWeddingCatalog.COLOR_PALETTES.forEach { (name, hexList) ->
                                     val active = selectedPaletteName == name
@@ -322,7 +321,7 @@ fun OnboardingScreen(
                                 }
                             }
 
-                            Text("Tipo de ceremonia", style = MaterialTheme.typography.titleSmall)
+                            Text("Ceremony setting", style = MaterialTheme.typography.titleSmall)
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -339,7 +338,7 @@ fun OnboardingScreen(
                             OutlinedTextField(
                                 value = visionExpectations,
                                 onValueChange = { visionExpectations = it },
-                                label = { Text("¿Qué sueñas recordar de tu boda?") },
+                                label = { Text("What do you dream of remembering most?") },
                                 minLines = 3,
                                 maxLines = 4,
                                 modifier = Modifier.fillMaxWidth()
@@ -348,11 +347,11 @@ fun OnboardingScreen(
 
                         else -> {
                             Text(
-                                text = "Ranking de Prioridades",
+                                text = "Priority Ranking",
                                 style = MaterialTheme.typography.headlineMedium
                             )
                             Text(
-                                text = "Ordena de mayor a menor importancia. Nuestro motor recalcula en tiempo real cuánto asignar a cada rubro sin exceder tu presupuesto.",
+                                text = "Rank categories from highest to lowest importance. Our engine recalculates your allocations in real time without exceeding your budget.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -372,7 +371,7 @@ fun OnboardingScreen(
                                     Spacer(Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            "Suite preseleccionada: ${matchedSuite.name}",
+                                            "Matched suite: ${matchedSuite.name}",
                                             style = MaterialTheme.typography.titleSmall
                                         )
                                         Text(
@@ -414,7 +413,7 @@ fun OnboardingScreen(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(cat, style = MaterialTheme.typography.titleSmall)
                                             Text(
-                                                text = "Asignación sugerida: ${BudgetRebalancer.formatCurrency(previewAmount)}",
+                                                text = "Suggested allocation: ${BudgetRebalancer.formatCurrency(previewAmount)}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -428,7 +427,7 @@ fun OnboardingScreen(
                                             },
                                             enabled = idx > 0
                                         ) {
-                                            Icon(Icons.Default.ArrowUpward, contentDescription = "Subir prioridad")
+                                            Icon(Icons.Default.ArrowUpward, contentDescription = "Move priority up")
                                         }
                                         IconButton(
                                             onClick = {
@@ -439,7 +438,7 @@ fun OnboardingScreen(
                                             },
                                             enabled = idx < priorityOrder.lastIndex
                                         ) {
-                                            Icon(Icons.Default.ArrowDownward, contentDescription = "Bajar prioridad")
+                                            Icon(Icons.Default.ArrowDownward, contentDescription = "Move priority down")
                                         }
                                     }
                                 }
@@ -467,7 +466,7 @@ fun OnboardingScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Atrás")
+                        Text("Back")
                     }
                 }
                 Button(
@@ -507,7 +506,7 @@ fun OnboardingScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(if (step < 2) "Continuar" else "Crear mi plan de boda")
+                        Text(if (step < 2) "Continue" else "Create My Wedding Plan")
                         Spacer(Modifier.width(6.dp))
                         Icon(
                             if (step < 2) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.Check,

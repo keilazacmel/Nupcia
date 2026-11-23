@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -68,9 +67,9 @@ fun AiBudgetChatScreen(
     val listState = rememberLazyListState()
 
     val quickPrompts = listOf(
-        "Busco fotógrafo y flores dentro de mi presupuesto",
-        "Prioriza banquete y lugar sin pasar el total",
-        "¿Cómo puedo ahorrar en música y papelería?"
+        "Find photography & florals in Utah County within budget",
+        "Prioritize venue and catering without going over total",
+        "How can we save on music and stationery?"
     )
 
     LaunchedEffect(turns.size, isThinking) {
@@ -98,12 +97,12 @@ fun AiBudgetChatScreen(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Asistente IA de Presupuesto",
+                        text = "AI Budget Concierge",
                         style = MaterialTheme.typography.headlineSmall
                     )
                 }
                 Text(
-                    text = "Rebalanceo determinista por prioridades + proveedores reales compatibles",
+                    text = "Deterministic priority rebalancing + real Utah County vendors",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -142,7 +141,7 @@ fun AiBudgetChatScreen(
                         ) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                             Text(
-                                "Calculando rebalanceo exacto y consultando a Gemini…",
+                                "Calculating exact budget rebalance & matching vendors…",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -184,7 +183,7 @@ fun AiBudgetChatScreen(
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it },
-                    placeholder = { Text("Ej. Busco fotógrafo editorial y flores…") },
+                    placeholder = { Text("e.g. Find editorial photography & florals…") },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -202,7 +201,7 @@ fun AiBudgetChatScreen(
                         .size(48.dp)
                         .testTag("ai_chat_send_button")
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar mensaje")
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send message")
                 }
             }
         }
@@ -255,7 +254,7 @@ private fun ChatTurnBubble(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            text = "Impacto financiero: ${turn.impactSummary}",
+                            text = "Financial impact: ${turn.impactSummary}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(10.dp)
@@ -279,12 +278,12 @@ private fun ChatTurnBubble(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Propuesta Exacta de Presupuesto",
+                        text = "Exact Budget Rebalance Proposal",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Total verificado: ${BudgetRebalancer.formatCurrency(proposal.totalProposed)} / ${BudgetRebalancer.formatCurrency(proposal.totalBudget)}",
+                        text = "Verified total: ${BudgetRebalancer.formatCurrency(proposal.totalProposed)} / ${BudgetRebalancer.formatCurrency(proposal.totalBudget)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -302,7 +301,7 @@ private fun ChatTurnBubble(
                                     style = MaterialTheme.typography.labelLarge
                                 )
                                 Text(
-                                    "Rango ${BudgetRebalancer.formatCurrency(r.suggestedMin)} – ${BudgetRebalancer.formatCurrency(r.suggestedMax)}",
+                                    "Range ${BudgetRebalancer.formatCurrency(r.suggestedMin)} – ${BudgetRebalancer.formatCurrency(r.suggestedMax)}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -337,7 +336,7 @@ private fun ChatTurnBubble(
                     ) {
                         Icon(Icons.Default.CheckCircle, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(if (turn.proposalApplied) "Ajuste aplicado al presupuesto" else "Aplicar este ajuste de presupuesto")
+                        Text(if (turn.proposalApplied) "Budget adjustment applied" else "Apply this budget adjustment")
                     }
                 }
             }
@@ -357,9 +356,9 @@ private fun ChatTurnBubble(
                         onSendRequest = {
                             onSendInquiry(
                                 scored.vendor,
-                                "Cotización ${scored.vendor.category} (IA)",
+                                "${scored.vendor.category} Inquiry (AI Match)",
                                 scored.categoryBudgetAllocated.coerceAtLeast(scored.vendor.minPrice),
-                                "Recomendado por el Asistente IA de Nupcia con ${scored.affinityScore}% de afinidad."
+                                "Recommended by Nupcia AI Concierge with ${scored.affinityScore}% wedding affinity."
                             )
                         }
                     )
@@ -397,7 +396,7 @@ private fun ChatVendorRecommendationCard(
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
-                        "${scored.affinityScore}% afinidad",
+                        "${scored.affinityScore}% match",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -410,7 +409,7 @@ private fun ChatVendorRecommendationCard(
                 Text("${v.ratingAvg}", style = MaterialTheme.typography.labelSmall)
             }
             Text(
-                "${"%.1f".format(scored.distanceKm)} km de tu evento • ${if (scored.coversWeddingLocation) "Cubre tu ubicación" else "Fuera de radio habitual"}",
+                "${"%.1f".format(scored.distanceMiles)} mi from venue • ${if (scored.coversWeddingLocation) "Covers your area" else "Outside usual radius"}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -422,14 +421,14 @@ private fun ChatVendorRecommendationCard(
                 ) {
                     Icon(Icons.Default.LocationOn, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Ver en mapa", style = MaterialTheme.typography.labelMedium)
+                    Text("View on map", style = MaterialTheme.typography.labelMedium)
                 }
                 FilledTonalButton(
                     onClick = onSendRequest,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Enviar solicitud", style = MaterialTheme.typography.labelMedium)
+                    Text("Send inquiry", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }

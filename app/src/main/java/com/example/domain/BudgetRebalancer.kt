@@ -35,19 +35,19 @@ object BudgetRebalancer {
 
     // Baseline industry share weights before priority amplification
     private val baseShareWeights: Map<String, Double> = mapOf(
-        "Lugar" to 0.24,
-        "Banquete" to 0.26,
-        "Fotografía" to 0.13,
-        "Flores" to 0.11,
-        "Música" to 0.09,
-        "Vestido" to 0.08,
-        "Papelería" to 0.04,
-        "Coordinación" to 0.05
+        "Venue" to 0.24,
+        "Catering" to 0.26,
+        "Photography" to 0.13,
+        "Florals" to 0.11,
+        "Music" to 0.09,
+        "Attire" to 0.08,
+        "Stationery" to 0.04,
+        "Coordination" to 0.05
     )
 
     /**
      * Generates initial priority-weighted allocations during bridal onboarding (RF-03).
-     * Top-ranked categories get up to +45% boost; lower-ranked categories gently compress.
+     * Top-ranked categories get up to +42% boost; lower-ranked categories gently compress.
      */
     fun computeInitialAllocations(
         totalBudget: Double,
@@ -57,7 +57,6 @@ object BudgetRebalancer {
         val n = categories.size.coerceAtLeast(1)
         val rawWeights = categories.mapIndexed { index, cat ->
             val base = baseShareWeights[cat] ?: (1.0 / n)
-            // Rank multiplier: rank 1 -> 1.42x, bottom rank -> 0.68x
             val ratio = if (n > 1) index.toDouble() / (n - 1).toDouble() else 0.0
             val multiplier = 1.42 - (0.74 * ratio)
             cat to (base * multiplier)
@@ -67,16 +66,16 @@ object BudgetRebalancer {
         var runningTotal = 0.0
         return rawWeights.mapIndexed { index, (cat, w) ->
             val amount = if (index == rawWeights.lastIndex) {
-                max(0.0, roundToHundred(totalBudget - runningTotal))
+                max(0.0, roundToFifty(totalBudget - runningTotal))
             } else {
-                val computed = roundToHundred(totalBudget * (w / weightSum))
+                val computed = roundToFifty(totalBudget * (w / weightSum))
                 runningTotal += computed
                 computed
             }
             val rankLabel = when {
-                index <= 1 -> "Prioridad Alta"
-                index <= 4 -> "Prioridad Media"
-                else -> "Prioridad Flexible"
+                index <= 1 -> "High Priority"
+                index <= 4 -> "Medium Priority"
+                else -> "Flexible Priority"
             }
             BudgetAllocation(
                 category = cat,
@@ -117,7 +116,7 @@ object BudgetRebalancer {
         val warnings = mutableListOf<String>()
         val totalSpent = ordered.sumOf { it.spentAmount }
         if (totalSpent > safeTotal) {
-            warnings.add("El gasto comprometido supera el presupuesto total por ${formatCurrency(totalSpent - safeTotal)}.")
+            warnings.add("Committed spending exceeds your total budget by ${formatCurrency(totalSpent - safeTotal)}.")
         }
 
         val unlockedMinFloors = unlocked.associate { it.category to it.spentAmount }
@@ -147,13 +146,13 @@ object BudgetRebalancer {
             val share = if (idx == unlocked.lastIndex) {
                 max(0.0, safeTotal - allocatedSum - floor)
             } else {
-                roundToHundred(redistributableHeadroom * ((desiredWeights[alloc.category] ?: 0.0) / weightTotal))
+                roundToFifty(redistributableHeadroom * ((desiredWeights[alloc.category] ?: 0.0) / weightTotal))
             }
             val proposed = min(
                 max(floor, floor + share),
                 max(floor, safeTotal - allocatedSum)
             )
-            val finalAmount = roundToHundred(proposed).coerceAtLeast(floor)
+            val finalAmount = roundToFifty(proposed).coerceAtLeast(floor)
             proposalsMap[alloc.category] = finalAmount
             allocatedSum += finalAmount
         }
@@ -171,8 +170,8 @@ object BudgetRebalancer {
 
         val ranges = ordered.map { alloc ->
             val ideal = proposalsMap[alloc.category] ?: alloc.allocatedAmount
-            val minVal = max(alloc.spentAmount, roundToHundred(ideal * 0.85))
-            val maxVal = min(safeTotal, roundToHundred(ideal * 1.15))
+            val minVal = max(alloc.spentAmount, roundToFifty(ideal * 0.85))
+            val maxVal = min(safeTotal, roundToFifty(ideal * 1.15))
             CategoryBudgetRange(
                 category = alloc.category,
                 priorityRank = alloc.priorityRank.toInt(),
@@ -188,7 +187,7 @@ object BudgetRebalancer {
         val finalTotal = ranges.sumOf { it.suggestedIdeal }
         val health = computeBudgetHealthScore(safeTotal, ordered)
         if (finalTotal > safeTotal) {
-            warnings.add("Algunos rubros bloqueados impiden reducir más el total.")
+            warnings.add("Locked categories prevent reducing the total budget further.")
         }
 
         return RebalanceProposal(
@@ -216,7 +215,7 @@ object BudgetRebalancer {
         return score.coerceIn(10, 100)
     }
 
-    fun roundToHundred(value: Double): Double = round(value / 100.0) * 100.0
+    fun roundToFifty(value: Double): Double = round(value / 50.0) * 50.0
 
     fun formatCurrency(amount: Double): String {
         val rounded = round(amount).toLong()

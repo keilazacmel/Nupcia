@@ -28,22 +28,22 @@ data class Wedding(
     val brideName: String = "",
     val partnerName: String = "",
     val weddingDate: String = "2027-06-19",
-    val city: String = "Ciudad de México",
-    val lat: Double = 19.4326,
-    val lng: Double = -99.1332,
-    val totalBudget: Double = 300000.0,
-    val estimatedGuests: Long = 120L,
-    val slug: String = "nuestra-boda",
+    val city: String = "Provo, UT",
+    val lat: Double = 40.2338,
+    val lng: Double = -111.6585,
+    val totalBudget: Double = 35000.0,
+    val estimatedGuests: Long = 140L,
+    val slug: String = "our-wedding",
     val selectedSuiteId: String = "botanical_ivory",
-    val styleTags: List<String> = listOf("Jardín", "Clásico"),
+    val styleTags: List<String> = listOf("Garden", "Classic"),
     val colorPalette: List<String> = listOf("#7B2D3B", "#FAF6F1", "#536B5E"),
-    val ceremonyType: String = "Jardín al aire libre",
+    val ceremonyType: String = "Outdoor Garden",
     val visionExpectations: String = "",
     val priorityOrder: List<String> = DefaultWeddingCatalog.CATEGORIES,
-    val websiteHeadline: String = "Nos casamos",
-    val websiteStory: String = "Estamos muy felices de compartir este capítulo contigo.",
-    val websiteVenueName: String = "Por confirmar",
-    val websiteSchedule: String = "16:30 Ceremonia • 18:00 Cóctel • 19:30 Recepción",
+    val websiteHeadline: String = "We're Getting Married",
+    val websiteStory: String = "We are so excited to celebrate the beginning of our next chapter with you in Utah County.",
+    val websiteVenueName: String = "To be announced in Provo, UT",
+    val websiteSchedule: String = "4:30 PM Ceremony • 6:00 PM Cocktail Hour • 7:30 PM Dinner & Dancing",
     val websiteProtected: Boolean = false,
     @ServerTimestamp val createdAt: Timestamp? = null,
     @ServerTimestamp val updatedAt: Timestamp? = null
@@ -74,7 +74,7 @@ data class Guest(
     val phone: String = "",
     val postalAddress: String = "",
     val rsvpStatus: String = "PENDING", // PENDING | CONFIRMED | DECLINED
-    val mealChoice: String = "Menú principal",
+    val mealChoice: String = "Main Course",
     val dietaryNotes: String = "",
     val tableNumber: Long = 0L, // 0 = unassigned
     val inviteToken: String = "NUP-1000",
@@ -122,16 +122,16 @@ data class VendorProfile(
     @DocumentId val id: String = "",
     val ownerId: String = "",
     val businessName: String = "",
-    val category: String = "Fotografía",
+    val category: String = "Photography",
     val description: String = "",
-    val city: String = "Ciudad de México",
-    val lat: Double = 19.4326,
-    val lng: Double = -99.1332,
-    val coverageRadiusKm: Double = 100.0,
-    val minPrice: Double = 15000.0,
-    val maxPrice: Double = 45000.0,
-    val styleTags: List<String> = listOf("Clásico"),
-    val ratingAvg: Double = 4.8,
+    val city: String = "Provo, UT",
+    val lat: Double = 40.2338,
+    val lng: Double = -111.6585,
+    val coverageRadiusKm: Double = 60.0,
+    val minPrice: Double = 2200.0,
+    val maxPrice: Double = 5500.0,
+    val styleTags: List<String> = listOf("Classic"),
+    val ratingAvg: Double = 4.9,
     val completedEventsCount: Long = 0L,
     val published: Boolean = true,
     @ServerTimestamp val createdAt: Timestamp? = null,
@@ -146,7 +146,7 @@ data class VendorCatalogItem(
     val title: String = "",
     val description: String = "",
     val basePrice: Double = 0.0,
-    val pricingUnit: String = "Por evento",
+    val pricingUnit: String = "Per event",
     val active: Boolean = true,
     val published: Boolean = true,
     @ServerTimestamp val createdAt: Timestamp? = null,
@@ -203,7 +203,7 @@ data class VendorCalendarBlock(
     @ServerTimestamp val updatedAt: Timestamp? = null
 )
 
-// --- Curated Static Reference Data (Geocoded Cities, Styles, Suites) ---
+// --- Curated Static Reference Data (Utah County Geocoded Cities, Styles, Suites) ---
 
 data class CityOption(
     val name: String,
@@ -222,60 +222,62 @@ data class StationerySuite(
 
 object DefaultWeddingCatalog {
     val CATEGORIES = listOf(
-        "Lugar",
-        "Banquete",
-        "Fotografía",
-        "Flores",
-        "Música",
-        "Vestido",
-        "Papelería",
-        "Coordinación"
+        "Venue",
+        "Catering",
+        "Photography",
+        "Florals",
+        "Music",
+        "Attire",
+        "Stationery",
+        "Coordination"
     )
 
     val STYLE_TAGS = listOf(
-        "Clásico",
-        "Bohemio",
-        "Moderno",
-        "Jardín",
-        "Minimalista",
-        "Destino",
-        "Romántico",
+        "Classic",
+        "Bohemian",
+        "Modern",
+        "Garden",
+        "Minimalist",
+        "Mountain",
+        "Romantic",
         "Editorial"
     )
 
     val CEREMONY_TYPES = listOf(
-        "Jardín al aire libre",
-        "Hacienda histórica",
-        "Salón contemporáneo",
-        "Playa / Destino",
-        "Ceremonia íntima"
+        "Outdoor Garden",
+        "Mountain Lodge / Canyon",
+        "Historic Estate",
+        "Modern Ballroom",
+        "Intimate Ceremony"
     )
 
     val COLOR_PALETTES: Map<String, List<String>> = mapOf(
-        "Burdeos & Marfil" to listOf("#7B2D3B", "#FAF6F1", "#536B5E"),
-        "Eucalipto & Champagne" to listOf("#4B6858", "#F7F3EB", "#B68D40"),
-        "Terracota & Arena" to listOf("#A4573E", "#F8EFE6", "#6D594D"),
-        "Noche & Oro" to listOf("#24293E", "#F4F1EA", "#C59B43")
+        "Bordeaux & Ivory" to listOf("#7B2D3B", "#FAF6F1", "#536B5E"),
+        "Eucalyptus & Champagne" to listOf("#4B6858", "#F7F3EB", "#B68D40"),
+        "Terracotta & Sand" to listOf("#A4573E", "#F8EFE6", "#6D594D"),
+        "Midnight & Gold" to listOf("#24293E", "#F4F1EA", "#C59B43")
     )
 
+    // Geocoded Utah County, Utah wedding destinations
     val CITIES = listOf(
-        CityOption("Ciudad de México", 19.4326, -99.1332),
-        CityOption("Guadalajara", 20.6597, -103.3496),
-        CityOption("Monterrey", 25.6866, -100.3161),
-        CityOption("San Miguel de Allende", 20.9144, -100.7452),
-        CityOption("Valle de Bravo", 19.1951, -100.1314),
-        CityOption("Cancún / Riviera Maya", 21.1619, -86.8515),
-        CityOption("Oaxaca", 17.0732, -96.7266),
-        CityOption("Madrid", 40.4168, -3.7038),
-        CityOption("Bogotá", 4.7110, -74.0721)
+        CityOption("Provo, UT", 40.2338, -111.6585),
+        CityOption("Orem, UT", 40.2969, -111.6946),
+        CityOption("Lehi, UT", 40.3916, -111.8508),
+        CityOption("American Fork, UT", 40.3769, -111.7958),
+        CityOption("Sundance / Provo Canyon", 40.3934, -111.5888),
+        CityOption("Alpine, UT", 40.4533, -111.7780),
+        CityOption("Pleasant Grove, UT", 40.3641, -111.7385),
+        CityOption("Highland, UT", 40.4272, -111.7966),
+        CityOption("Springville, UT", 40.1652, -111.6108),
+        CityOption("Spanish Fork, UT", 40.1150, -111.6549)
     )
 
     val SUITES = listOf(
-        StationerySuite("botanical_ivory", "Marfil Botánico", "Jardín", "#FAF6F1", "#4B6858", "Follaje fino y serif clásica"),
-        StationerySuite("bordeaux_couture", "Atelier Burdeos", "Clásico", "#FDF7F4", "#7B2D3B", "Elegancia editorial atemporal"),
-        StationerySuite("terracotta_boho", "Sol Terracota", "Bohemio", "#F9F0E7", "#A4573E", "Tonos cálidos y orgánicos"),
-        StationerySuite("champagne_minimal", "Línea Champagne", "Minimalista", "#FFFFFF", "#9C762F", "Geometría limpia en oro"),
-        StationerySuite("coastal_linen", "Lino Costero", "Destino", "#F4F8F9", "#3B6275", "Aire mediterráneo y fresco")
+        StationerySuite("botanical_ivory", "Botanical Ivory", "Garden", "#FAF6F1", "#4B6858", "Fine foliage & classic serif"),
+        StationerySuite("bordeaux_couture", "Bordeaux Couture", "Classic", "#FDF7F4", "#7B2D3B", "Timeless editorial elegance"),
+        StationerySuite("terracotta_boho", "Terracotta Sun", "Bohemian", "#F9F0E7", "#A4573E", "Warm organic desert tones"),
+        StationerySuite("champagne_minimal", "Champagne Line", "Minimalist", "#FFFFFF", "#9C762F", "Clean gold architectural lines"),
+        StationerySuite("alpine_linen", "Alpine Linen", "Mountain", "#F4F8F9", "#3B6275", "Crisp Wasatch mountain air")
     )
 
     fun suiteForStyles(styles: List<String>): StationerySuite {

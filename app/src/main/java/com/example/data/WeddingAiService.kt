@@ -38,17 +38,17 @@ class WeddingAiService {
     private val responseSchema = Schema.obj(
         properties = mapOf(
             "assistantMessage" to Schema.string(
-                description = "Respuesta cálida, editorial y práctica en español dirigida a la novia."
+                description = "Warm, editorial, practical response in English addressed to the couple."
             ),
             "impactSummary" to Schema.string(
-                description = "Resumen breve (1-2 frases) explicando el impacto financiero en otras categorías y cómo respeta sus prioridades."
+                description = "Brief 1-2 sentence summary explaining the financial trade-off across categories while honoring their top priorities."
             ),
             "shouldOfferRebalance" to Schema.boolean(
-                description = "true si conviene mostrar el botón de aplicar ajuste de presupuesto."
+                description = "true if showing the one-tap budget rebalance action card is helpful."
             ),
             "recommendedVendorIds" to Schema.array(
                 items = Schema.string(),
-                description = "Lista de hasta 3 IDs de proveedores reales proporcionados en el contexto que mejor encajan."
+                description = "List of up to 3 real vendor IDs provided in the context that best match."
             )
         )
     )
@@ -72,12 +72,12 @@ class WeddingAiService {
         allVendors: List<VendorProfile>
     ): Result<AiAssistantReply> {
         return try {
-            // 1. Detect focus categories mentioned by the bride
+            // 1. Detect focus categories mentioned by the couple
             val detectedCategories = detectCategoriesFromPrompt(userPrompt, wedding?.priorityOrder.orEmpty())
 
             // 2. Run deterministic budget math (zero LLM arithmetic!)
             val proposal = BudgetRebalancer.rebalanceForCategories(
-                totalBudget = wedding?.totalBudget ?: 300000.0,
+                totalBudget = wedding?.totalBudget ?: 35000.0,
                 priorityOrder = wedding?.priorityOrder ?: DefaultWeddingCatalog.CATEGORIES,
                 currentAllocations = allocations,
                 focusCategories = detectedCategories
@@ -100,34 +100,34 @@ class WeddingAiService {
 
             // 4. Build concise rich context for Gemini 3.8 Flash
             val prompt = buildString {
-                appendLine("Eres el Asistente Editorial de Planificación de Bodas de Nupcia. Responde siempre en español cálido y claro.")
-                appendLine("REGLA CRÍTICA: Nunca inventes números ni proveedores. Usa EXCLUSIVAMENTE los cálculos deterministas y proveedores reales listados abajo.")
+                appendLine("You are Nupcia's Editorial Wedding Planning & Budget Concierge serving Utah County, Utah. Always reply in warm, clear, concise English.")
+                appendLine("CRITICAL RULE: Never invent numbers or vendors. Use EXCLUSIVELY the verified deterministic calculations and real Firestore vendors listed below.")
                 appendLine()
-                appendLine("PERFIL DE LA NOVIA:")
-                appendLine("- Pareja: ${wedding?.brideName ?: "Novia"} & ${wedding?.partnerName ?: "Pareja"}")
-                appendLine("- Fecha: ${wedding?.weddingDate ?: "Por definir"} | Ciudad: ${wedding?.city ?: "CDMX"} | Invitados: ${wedding?.estimatedGuests ?: 120}")
-                appendLine("- Estilos: ${wedding?.styleTags?.joinToString(", ") ?: "Clásico"}")
-                appendLine("- Expectativas: ${wedding?.visionExpectations?.ifBlank { "Elegancia y armonía" } ?: "Elegancia"}")
-                appendLine("- Ranking de Prioridades (1 = más alta): ${wedding?.priorityOrder?.joinToString(" > ") ?: ""}")
-                appendLine("- Presupuesto Total: ${BudgetRebalancer.formatCurrency(proposal.totalBudget)} | Comprometido: ${BudgetRebalancer.formatCurrency(proposal.totalSpent)}")
+                appendLine("COUPLE PROFILE:")
+                appendLine("- Couple: ${wedding?.brideName ?: "Bride"} & ${wedding?.partnerName ?: "Partner"}")
+                appendLine("- Date: ${wedding?.weddingDate ?: "TBD"} | Location: ${wedding?.city ?: "Provo, UT"} | Guests: ${wedding?.estimatedGuests ?: 140}")
+                appendLine("- Styles: ${wedding?.styleTags?.joinToString(", ") ?: "Classic"}")
+                appendLine("- Vision: ${wedding?.visionExpectations?.ifBlank { "Timeless elegance and heartfelt moments" } ?: "Timeless elegance"}")
+                appendLine("- Priority Ranking (1 = highest): ${wedding?.priorityOrder?.joinToString(" > ") ?: ""}")
+                appendLine("- Total Budget: ${BudgetRebalancer.formatCurrency(proposal.totalBudget)} | Committed: ${BudgetRebalancer.formatCurrency(proposal.totalSpent)}")
                 appendLine()
-                appendLine("CÁLCULO DETERMINISTA DE REBALANCEO (ya verificado, suma <= total):")
+                appendLine("DETERMINISTIC REBALANCE CALCULATION (verified, sum <= total):")
                 proposal.ranges.forEach { r ->
                     val sign = if (r.delta >= 0) "+" else ""
-                    appendLine("- #${r.priorityRank} ${r.category}: actual ${BudgetRebalancer.formatCurrency(r.currentAllocated)} -> ideal ${BudgetRebalancer.formatCurrency(r.suggestedIdeal)} (rango ${BudgetRebalancer.formatCurrency(r.suggestedMin)} - ${BudgetRebalancer.formatCurrency(r.suggestedMax)}, ajuste $sign${BudgetRebalancer.formatCurrency(r.delta)})")
+                    appendLine("- #${r.priorityRank} ${r.category}: current ${BudgetRebalancer.formatCurrency(r.currentAllocated)} -> ideal ${BudgetRebalancer.formatCurrency(r.suggestedIdeal)} (range ${BudgetRebalancer.formatCurrency(r.suggestedMin)} - ${BudgetRebalancer.formatCurrency(r.suggestedMax)}, delta $sign${BudgetRebalancer.formatCurrency(r.delta)})")
                 }
                 appendLine()
-                appendLine("PROVEEDORES REALES COMPATIBLES EN FIRESTORE:")
+                appendLine("REAL MATCHING VENDORS IN FIRESTORE:")
                 if (scoredVendors.isEmpty()) {
-                    appendLine("- Ningún proveedor publicado aún para esta categoría.")
+                    appendLine("- No published vendors found yet for this category.")
                 } else {
                     scoredVendors.forEach { sv ->
                         val v = sv.vendor
-                        appendLine("- ID=${v.id} | ${v.businessName} (${v.category}) | Precio: ${BudgetRebalancer.formatCurrency(v.minPrice)}-${BudgetRebalancer.formatCurrency(v.maxPrice)} | Afinidad: ${sv.affinityScore}% | Distancia: ${"%.1f".format(sv.distanceKm)} km | Cubre zona: ${sv.coversWeddingLocation}")
+                        appendLine("- ID=${v.id} | ${v.businessName} (${v.category}, ${v.city}) | Price: ${BudgetRebalancer.formatCurrency(v.minPrice)}-${BudgetRebalancer.formatCurrency(v.maxPrice)} | Match: ${sv.affinityScore}% | Distance: ${"%.1f".format(sv.distanceMiles)} mi | Covers venue: ${sv.coversWeddingLocation}")
                     }
                 }
                 appendLine()
-                appendLine("MENSAJE DE LA NOVIA:")
+                appendLine("COUPLE MESSAGE:")
                 appendLine(userPrompt)
             }
 
@@ -135,12 +135,12 @@ class WeddingAiService {
                 model.generateContent(prompt)
             }
             val rawJson = response.text
-                ?: throw IllegalStateException("El asistente no devolvió contenido.")
+                ?: throw IllegalStateException("The AI assistant returned an empty response.")
 
             // Direct JSON parsing (responseSchema guarantees clean JSON without markdown fences)
             val json = JSONObject(rawJson)
             val assistantMsg = json.optString("assistantMessage", "").ifBlank {
-                "He recalculado tu presupuesto según tus prioridades sin exceder el total."
+                "I recalculated your wedding budget based on your priorities without exceeding your total."
             }
             val impactSummary = json.optString("impactSummary", "")
             val offerRebalance = json.optBoolean("shouldOfferRebalance", true)
@@ -169,26 +169,26 @@ class WeddingAiService {
             )
         } catch (e: TimeoutCancellationException) {
             Log.e(AI_TAG, "Gemini generation timed out", e)
-            Result.failure(Exception("El asistente tardó más de 60 segundos. Intenta de nuevo."))
+            Result.failure(Exception("The AI concierge took more than 60 seconds. Please try again."))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.e(AI_TAG, "Firebase AI generation failed", e)
-            Result.failure(Exception(e.localizedMessage ?: "No se pudo consultar al asistente IA."))
+            Result.failure(Exception(e.localizedMessage ?: "Could not reach the AI concierge."))
         }
     }
 
     private fun detectCategoriesFromPrompt(prompt: String, priorities: List<String>): List<String> {
         val lower = prompt.lowercase()
         val keywords = mapOf(
-            "Lugar" to listOf("lugar", "venue", "hacienda", "jardín", "jardin", "salón", "salon", "espacio"),
-            "Banquete" to listOf("banquete", "comida", "catering", "cena", "menú", "menu", "gastronomía"),
-            "Fotografía" to listOf("foto", "fotógraf", "fotograf", "video", "cámara", "editorial"),
-            "Flores" to listOf("flor", "floral", "ramo", "decoración", "decoracion", "centros de mesa"),
-            "Música" to listOf("música", "musica", "dj", "banda", "fiesta", "cuarteto", "sonido"),
-            "Vestido" to listOf("vestido", "traje", "novia", "moda", "atelier", "maquillaje"),
-            "Papelería" to listOf("papelería", "papeleria", "invitaci", "sobre", "menús"),
-            "Coordinación" to listOf("coordinaci", "planner", "organizador", "logística")
+            "Venue" to listOf("venue", "estate", "garden", "canyon", "lodge", "hall", "barn", "location"),
+            "Catering" to listOf("catering", "food", "dinner", "menu", "cake", "banquet", "bar"),
+            "Photography" to listOf("photo", "photographer", "photography", "video", "film", "camera", "editorial"),
+            "Florals" to listOf("floral", "flower", "bouquet", "decor", "centerpiece", "arch"),
+            "Music" to listOf("music", "dj", "band", "quartet", "strings", "sound"),
+            "Attire" to listOf("dress", "attire", "gown", "suit", "tux", "hair", "makeup"),
+            "Stationery" to listOf("stationery", "invite", "invitation", "envelope", "paper", "card"),
+            "Coordination" to listOf("coordinator", "coordination", "planner", "logistics", "timeline")
         )
         val matched = keywords.filter { (_, keys) -> keys.any { lower.contains(it) } }.keys.toList()
         return matched.ifEmpty { priorities.take(2) }

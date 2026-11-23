@@ -1,6 +1,6 @@
 {
   "name": "Nupcia",
-  "description": "Plataforma integral de planificación de bodas con asistente IA de presupuesto dinámico, descubrimiento geoespacial de proveedores, portal B2B con generación automática de tareas, RSVP, mesa de regalos y editor de papelería.",
+  "description": "All-in-one wedding planning platform for Utah County with an AI dynamic budget concierge, geospatial vendor discovery, B2B vendor portal with automated task generation, RSVP, gift registry, and stationery studio.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

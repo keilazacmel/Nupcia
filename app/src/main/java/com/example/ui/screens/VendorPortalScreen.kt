@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -73,6 +72,7 @@ import com.example.domain.VendorCalendarBlock
 import com.example.domain.VendorCatalogItem
 import com.example.domain.VendorProfile
 import com.example.domain.VendorTask
+import kotlin.math.roundToInt
 
 @Composable
 fun VendorPortalScreen(
@@ -95,10 +95,10 @@ fun VendorPortalScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     BackHandler(enabled = selectedTab != 0) { selectedTab = 0 }
     val tabs = listOf(
-        "Solicitudes & Tareas" to Icons.Default.TaskAlt,
-        "Catálogo" to Icons.Default.Inventory2,
-        "Calendario" to Icons.Default.CalendarMonth,
-        "Métricas" to Icons.Default.Analytics
+        "Inquiries & Tasks" to Icons.Default.TaskAlt,
+        "Catalog" to Icons.Default.Inventory2,
+        "Calendar" to Icons.Default.CalendarMonth,
+        "Analytics" to Icons.Default.Analytics
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -113,12 +113,12 @@ fun VendorPortalScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = vendorProfile?.businessName?.ifBlank { "Portal de Proveedor" } ?: "Portal de Proveedor",
+                        text = vendorProfile?.businessName?.ifBlank { "Vendor Portal" } ?: "Vendor Portal",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "${requests.count { it.status == "PENDING" }} pendientes • ${tasks.count { it.status != "COMPLETED" && it.status != "CANCELLED" }} tareas activas",
+                        text = "${requests.count { it.status == "PENDING" }} pending • ${tasks.count { it.status != "COMPLETED" && it.status != "CANCELLED" }} active tasks",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                     )
@@ -127,10 +127,10 @@ fun VendorPortalScreen(
                     onClick = onSwitchToCouple,
                     modifier = Modifier.testTag("switch_to_couple_button")
                 ) {
-                    Icon(Icons.Default.Favorite, contentDescription = "Cambiar a Portal Pareja", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(Icons.Default.Favorite, contentDescription = "Switch to Couple Portal", tint = MaterialTheme.colorScheme.onPrimary)
                 }
                 IconButton(onClick = onSignOut) {
-                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Sign out", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -200,9 +200,9 @@ private fun VendorRequestsAndTasksTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text("Solicitudes Recibidas (${requests.size})", style = MaterialTheme.typography.titleLarge)
+            Text("Incoming Inquiries (${requests.size})", style = MaterialTheme.typography.titleLarge)
             Text(
-                "Al aceptar una solicitud se bloquea la fecha en tu calendario y se crean 4 tareas operativas automáticamente.",
+                "Accepting an inquiry automatically blocks the event date on your calendar and creates 4 operational tasks.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -212,7 +212,7 @@ private fun VendorRequestsAndTasksTab(
             item {
                 Card(shape = RoundedCornerShape(16.dp)) {
                     Text(
-                        "Aún no tienes solicitudes. Publica tu perfil en la pestaña Catálogo o prueba enviarte una solicitud desde el Portal de Pareja.",
+                        "No inquiries yet. Publish your profile in the Catalog tab or send yourself a test inquiry from the Couple Portal.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(16.dp)
                     )
@@ -235,7 +235,7 @@ private fun VendorRequestsAndTasksTab(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(req.coupleName, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "${req.catalogItemTitle} • Fecha: ${req.eventDate}",
+                                "${req.catalogItemTitle} • Date: ${req.eventDate}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -258,8 +258,8 @@ private fun VendorRequestsAndTasksTab(
                     }
 
                     Text(
-                        "Propuesto: ${BudgetRebalancer.formatCurrency(req.proposedBudget)}" +
-                            if (req.counterOfferBudget > 0) " • Contraoferta: ${BudgetRebalancer.formatCurrency(req.counterOfferBudget)}" else "",
+                        "Proposed: ${BudgetRebalancer.formatCurrency(req.proposedBudget)}" +
+                            if (req.counterOfferBudget > 0) " • Counteroffer: ${BudgetRebalancer.formatCurrency(req.counterOfferBudget)}" else "",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -277,15 +277,15 @@ private fun VendorRequestsAndTasksTab(
                                 ) {
                                     Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Aceptar")
+                                    Text("Accept")
                                 }
                                 if (req.status == "PENDING") {
                                     FilledTonalButton(onClick = { counterTarget = req }) {
-                                        Text("Contraofertar")
+                                        Text("Counteroffer")
                                     }
                                 }
                                 TextButton(onClick = { onTransitionRequest(req, "REJECTED") }) {
-                                    Text("Rechazar")
+                                    Text("Decline")
                                 }
                             }
                         }
@@ -295,10 +295,10 @@ private fun VendorRequestsAndTasksTab(
                                     onClick = { onTransitionRequest(req, "COMPLETED") },
                                     modifier = Modifier.testTag("vendor_complete_event_button")
                                 ) {
-                                    Text("Marcar evento cumplido")
+                                    Text("Mark Event Completed")
                                 }
                                 OutlinedButton(onClick = { onTransitionRequest(req, "CANCELLED") }) {
-                                    Text("Cancelar")
+                                    Text("Cancel")
                                 }
                             }
                         }
@@ -309,9 +309,9 @@ private fun VendorRequestsAndTasksTab(
 
         item {
             Spacer(Modifier.height(6.dp))
-            Text("Tablero de Tareas Operativas (${activeTasks.size})", style = MaterialTheme.typography.titleLarge)
+            Text("Operational Task Board (${activeTasks.size})", style = MaterialTheme.typography.titleLarge)
             Text(
-                "Toca el estado de cada tarea para avanzar: Pendiente → En progreso → Completada.",
+                "Tap any task card to advance its status: Pending → In Progress → Done.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -333,7 +333,7 @@ private fun VendorRequestsAndTasksTab(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(task.title, style = MaterialTheme.typography.titleSmall)
                         Text(
-                            "${task.coupleName} • Vence: ${task.dueDate}",
+                            "${task.coupleName} • Due: ${task.dueDate}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -352,9 +352,9 @@ private fun VendorRequestsAndTasksTab(
                     ) {
                         Text(
                             when (task.status) {
-                                "COMPLETED" -> "Lista ✓"
-                                "IN_PROGRESS" -> "En curso"
-                                else -> "Pendiente"
+                                "COMPLETED" -> "Done ✓"
+                                "IN_PROGRESS" -> "In Progress"
+                                else -> "Pending"
                             },
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -367,30 +367,30 @@ private fun VendorRequestsAndTasksTab(
 
     counterTarget?.let { target ->
         var amountText by remember { mutableStateOf(target.proposedBudget.toLong().toString()) }
-        var notes by remember { mutableStateOf("Podemos incluir montaje extendido por este ajuste.") }
+        var notes by remember { mutableStateOf("We can include extended event coverage for this adjustment.") }
         AlertDialog(
             onDismissRequest = { counterTarget = null },
-            title = { Text("Contraoferta para ${target.coupleName}") },
+            title = { Text("Counteroffer for ${target.coupleName}") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it.filter(Char::isDigit) },
-                        label = { Text("Nuevo monto sugerido") },
+                        label = { Text("Suggested amount (USD)") },
                         prefix = { Text("$") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
                     )
-                    OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Mensaje") }, minLines = 2)
+                    OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Message") }, minLines = 2)
                 }
             },
             confirmButton = {
                 Button(onClick = {
                     onCounterOffer(target.id, amountText.toDoubleOrNull() ?: target.proposedBudget, notes)
                     counterTarget = null
-                }) { Text("Enviar") }
+                }) { Text("Send") }
             },
-            dismissButton = { TextButton(onClick = { counterTarget = null }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { counterTarget = null }) { Text("Cancel") } }
         )
     }
 }
@@ -405,22 +405,25 @@ private fun VendorCatalogTab(
     onSaveProfile: (String, String, String, String, Double, Double, Double, Double, Double, List<String>, Boolean) -> Unit,
     onSaveCatalogItem: (String?, String, String, Double, String, Boolean) -> Unit
 ) {
-    var businessName by remember(profile) { mutableStateOf(profile?.businessName ?: "Atelier Nupcial Studio") }
-    var category by remember(profile) { mutableStateOf(profile?.category ?: "Fotografía") }
-    var description by remember(profile) { mutableStateOf(profile?.description ?: "Cobertura editorial de bodas con entrega digital y álbum impreso.") }
+    var businessName by remember(profile) { mutableStateOf(profile?.businessName ?: "Wasatch Bridal Studio") }
+    var category by remember(profile) { mutableStateOf(profile?.category ?: "Photography") }
+    var description by remember(profile) { mutableStateOf(profile?.description ?: "Editorial Utah County wedding coverage with full digital gallery and heirloom album.") }
     var selectedCity by remember(profile) {
         mutableStateOf(
             DefaultWeddingCatalog.CITIES.firstOrNull { it.name == profile?.city }
                 ?: DefaultWeddingCatalog.CITIES.first()
         )
     }
-    var radiusText by remember(profile) { mutableStateOf((profile?.coverageRadiusKm ?: 120.0).toInt().toString()) }
-    var minPriceText by remember(profile) { mutableStateOf((profile?.minPrice ?: 25000.0).toLong().toString()) }
-    var maxPriceText by remember(profile) { mutableStateOf((profile?.maxPrice ?: 65000.0).toLong().toString()) }
+    var radiusMilesText by remember(profile) {
+        val defaultMiles = ((profile?.coverageRadiusKm ?: 48.0) * 0.621371).roundToInt()
+        mutableStateOf(defaultMiles.toString())
+    }
+    var minPriceText by remember(profile) { mutableStateOf((profile?.minPrice ?: 2200.0).toLong().toString()) }
+    var maxPriceText by remember(profile) { mutableStateOf((profile?.maxPrice ?: 5500.0).toLong().toString()) }
     var published by remember(profile) { mutableStateOf(profile?.published ?: true) }
     val styles = remember(profile) {
         mutableStateListOf<String>().apply {
-            addAll(profile?.styleTags?.ifEmpty { listOf("Editorial", "Clásico") } ?: listOf("Editorial", "Clásico"))
+            addAll(profile?.styleTags?.ifEmpty { listOf("Editorial", "Classic") } ?: listOf("Editorial", "Classic"))
         }
     }
 
@@ -433,19 +436,19 @@ private fun VendorCatalogTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Perfil Público en el Marketplace", style = MaterialTheme.typography.titleLarge)
+        Text("Public Marketplace Profile", style = MaterialTheme.typography.titleLarge)
 
-        OutlinedTextField(value = businessName, onValueChange = { businessName = it }, label = { Text("Nombre comercial") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descripción de propuesta") }, minLines = 2, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = businessName, onValueChange = { businessName = it }, label = { Text("Business name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Service description") }, minLines = 2, modifier = Modifier.fillMaxWidth())
 
-        Text("Categoría", style = MaterialTheme.typography.titleSmall)
+        Text("Category", style = MaterialTheme.typography.titleSmall)
         Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DefaultWeddingCatalog.CATEGORIES.forEach { cat ->
                 FilterChip(selected = category == cat, onClick = { category = cat }, label = { Text(cat) })
             }
         }
 
-        Text("Ciudad base (coordenadas del mapa)", style = MaterialTheme.typography.titleSmall)
+        Text("Utah County Base Location (Map Pin)", style = MaterialTheme.typography.titleSmall)
         Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DefaultWeddingCatalog.CITIES.forEach { city ->
                 FilterChip(selected = selectedCity.name == city.name, onClick = { selectedCity = city }, label = { Text(city.name) })
@@ -456,7 +459,7 @@ private fun VendorCatalogTab(
             OutlinedTextField(
                 value = minPriceText,
                 onValueChange = { minPriceText = it.filter(Char::isDigit) },
-                label = { Text("Precio mín") },
+                label = { Text("Min price") },
                 prefix = { Text("$") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f),
@@ -465,23 +468,23 @@ private fun VendorCatalogTab(
             OutlinedTextField(
                 value = maxPriceText,
                 onValueChange = { maxPriceText = it.filter(Char::isDigit) },
-                label = { Text("Precio máx") },
+                label = { Text("Max price") },
                 prefix = { Text("$") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f),
                 singleLine = true
             )
             OutlinedTextField(
-                value = radiusText,
-                onValueChange = { radiusText = it.filter(Char::isDigit) },
-                label = { Text("Radio km") },
+                value = radiusMilesText,
+                onValueChange = { radiusMilesText = it.filter(Char::isDigit) },
+                label = { Text("Radius mi") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(0.8f),
+                modifier = Modifier.weight(0.85f),
                 singleLine = true
             )
         }
 
-        Text("Estilos afines", style = MaterialTheme.typography.titleSmall)
+        Text("Matching Wedding Styles", style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             DefaultWeddingCatalog.STYLE_TAGS.forEach { tag ->
                 val sel = styles.contains(tag)
@@ -494,30 +497,31 @@ private fun VendorCatalogTab(
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Visible en el mapa y asistente IA", style = MaterialTheme.typography.bodyMedium)
+            Text("Visible on Utah County map & AI Assistant", style = MaterialTheme.typography.bodyMedium)
             Switch(checked = published, onCheckedChange = { published = it })
         }
 
         Button(
             onClick = {
+                val radiusKm = ((radiusMilesText.toDoubleOrNull() ?: 30.0) * 1.60934).coerceIn(5.0, 2000.0)
                 onSaveProfile(
                     businessName, category, description, selectedCity.name,
                     selectedCity.lat, selectedCity.lng,
-                    radiusText.toDoubleOrNull()?.coerceIn(5.0, 2000.0) ?: 120.0,
-                    minPriceText.toDoubleOrNull() ?: 20000.0,
-                    maxPriceText.toDoubleOrNull() ?: 60000.0,
+                    radiusKm,
+                    minPriceText.toDoubleOrNull() ?: 2200.0,
+                    maxPriceText.toDoubleOrNull() ?: 5500.0,
                     styles.toList(), published
                 )
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("save_vendor_profile_button")
-        ) { Text("Guardar y publicar perfil") }
+        ) { Text("Save & publish profile") }
 
         Spacer(Modifier.height(6.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Paquetes de Servicio (${catalogItems.size})", style = MaterialTheme.typography.titleLarge)
+            Text("Service Packages (${catalogItems.size})", style = MaterialTheme.typography.titleLarge)
             FilledTonalButton(
                 onClick = { showPackageDialog = true },
                 enabled = profile != null,
@@ -525,7 +529,7 @@ private fun VendorCatalogTab(
             ) {
                 Icon(Icons.Default.Add, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Nuevo paquete")
+                Text("New package")
             }
         }
 
@@ -554,33 +558,33 @@ private fun VendorCatalogTab(
     if (showPackageDialog) {
         var title by remember { mutableStateOf("") }
         var desc by remember { mutableStateOf("") }
-        var price by remember { mutableStateOf("35000") }
-        var unit by remember { mutableStateOf("Por evento") }
+        var price by remember { mutableStateOf("3200") }
+        var unit by remember { mutableStateOf("Per event") }
         AlertDialog(
             onDismissRequest = { showPackageDialog = false },
-            title = { Text("Nuevo paquete de catálogo") },
+            title = { Text("New Catalog Package") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Nombre del paquete") }, singleLine = true)
-                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Incluye…") }, minLines = 2)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Package title") }, singleLine = true)
+                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Includes…") }, minLines = 2)
                     OutlinedTextField(
                         value = price,
                         onValueChange = { price = it.filter(Char::isDigit) },
-                        label = { Text("Precio base") },
+                        label = { Text("Base price (USD)") },
                         prefix = { Text("$") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
                     )
-                    OutlinedTextField(value = unit, onValueChange = { unit = it }, label = { Text("Unidad (ej. Por evento / Por persona)") }, singleLine = true)
+                    OutlinedTextField(value = unit, onValueChange = { unit = it }, label = { Text("Unit (e.g. Per event / Per guest)") }, singleLine = true)
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    onSaveCatalogItem(null, title, desc, price.toDoubleOrNull() ?: 15000.0, unit, true)
+                    onSaveCatalogItem(null, title, desc, price.toDoubleOrNull() ?: 1800.0, unit, true)
                     showPackageDialog = false
-                }) { Text("Guardar") }
+                }) { Text("Save") }
             },
-            dismissButton = { TextButton(onClick = { showPackageDialog = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { showPackageDialog = false }) { Text("Cancel") } }
         )
     }
 }
@@ -604,13 +608,13 @@ private fun VendorCalendarTab(
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
-                    Text("Calendario Unificado", style = MaterialTheme.typography.titleLarge)
-                    Text("Fechas reservadas y bloqueos manuales", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Unified Calendar", style = MaterialTheme.typography.titleLarge)
+                    Text("Booked weddings & manual date blocks", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(onClick = { showAddDialog = true }) {
                     Icon(Icons.Default.Add, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Bloquear fecha")
+                    Text("Block date")
                 }
             }
         }
@@ -619,7 +623,7 @@ private fun VendorCalendarTab(
             item {
                 Card(shape = RoundedCornerShape(16.dp)) {
                     Text(
-                        "Tus fechas aceptadas aparecerán bloqueadas automáticamente aquí. También puedes agregar bloqueos manuales.",
+                        "Accepted wedding dates are blocked automatically here. You can also add manual hold dates.",
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -637,14 +641,14 @@ private fun VendorCalendarTab(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(block.title, style = MaterialTheme.typography.titleSmall)
                         Text(
-                            "${block.startDate} • ${if (block.blockType == "BOOKED") "Evento reservado" else "Bloqueo manual"}",
+                            "${block.startDate} • ${if (block.blockType == "BOOKED") "Booked wedding" else "Manual block"}",
                             style = MaterialTheme.typography.bodySmall,
                             color = if (block.blockType == "BOOKED") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary
                         )
                     }
                     if (block.blockType == "MANUAL_BLOCK") {
                         IconButton(onClick = { onDeleteBlock(block.id) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Liberar fecha")
+                            Icon(Icons.Default.Delete, contentDescription = "Release date block")
                         }
                     }
                 }
@@ -655,7 +659,7 @@ private fun VendorCalendarTab(
         if (upcomingTasks.isNotEmpty()) {
             item {
                 Spacer(Modifier.height(6.dp))
-                Text("Próximos Vencimientos de Tareas", style = MaterialTheme.typography.titleMedium)
+                Text("Upcoming Task Deadlines", style = MaterialTheme.typography.titleMedium)
             }
             items(upcomingTasks, key = { "cal_${it.id}" }) { t ->
                 Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp)) {
@@ -672,21 +676,21 @@ private fun VendorCalendarTab(
     }
 
     if (showAddDialog) {
-        var title by remember { mutableStateOf("Fecha bloqueada (evento privado)") }
+        var title by remember { mutableStateOf("Blocked date (private event)") }
         var date by remember { mutableStateOf("2027-07-10") }
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Bloqueo manual de calendario") },
+            title = { Text("Manual Calendar Block") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Motivo") }, singleLine = true)
-                    OutlinedTextField(value = date, onValueChange = { date = it }, label = { Text("Fecha (AAAA-MM-DD)") }, singleLine = true)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Reason") }, singleLine = true)
+                    OutlinedTextField(value = date, onValueChange = { date = it }, label = { Text("Date (YYYY-MM-DD)") }, singleLine = true)
                 }
             },
             confirmButton = {
-                Button(onClick = { onAddBlock(title, date); showAddDialog = false }) { Text("Bloquear") }
+                Button(onClick = { onAddBlock(title, date); showAddDialog = false }) { Text("Block") }
             },
-            dismissButton = { TextButton(onClick = { showAddDialog = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { showAddDialog = false }) { Text("Cancel") } }
         )
     }
 }
@@ -699,7 +703,7 @@ private fun VendorClientsAndAnalyticsTab(
     requests: List<ServiceRequest>,
     tasks: List<VendorTask>
 ) {
-    // Business Rule #3: strictly count COMPLETED events for "Eventos Cumplidos"
+    // Business Rule #3: strictly count COMPLETED events for Completed Events metrics
     val completedRequests = requests.filter { it.status == "COMPLETED" }
     val acceptedOrCompleted = requests.filter { it.status == "ACCEPTED" || it.status == "COMPLETED" }
     val conversionRate = if (requests.isNotEmpty()) {
@@ -719,9 +723,9 @@ private fun VendorClientsAndAnalyticsTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text("Estadísticas de Eventos Cumplidos", style = MaterialTheme.typography.titleLarge)
+            Text("Completed Event Metrics", style = MaterialTheme.typography.titleLarge)
             Text(
-                "Solo contabiliza eventos marcados como COMPLETED (regla de negocio #3).",
+                "Counts strictly events marked COMPLETED (Business Rule #3).",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -729,23 +733,23 @@ private fun VendorClientsAndAnalyticsTab(
 
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricTile("Eventos Cumplidos", "${completedRequests.size}", Modifier.weight(1f))
-                MetricTile("Conversión", "$conversionRate%", Modifier.weight(1f))
-                MetricTile("Calificación", "${profile?.ratingAvg ?: 4.9} ★", Modifier.weight(1f))
+                MetricTile("Completed", "${completedRequests.size}", Modifier.weight(1f))
+                MetricTile("Conversion", "$conversionRate%", Modifier.weight(1f))
+                MetricTile("Rating", "${profile?.ratingAvg ?: 4.9} ★", Modifier.weight(1f))
             }
         }
 
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Resumen de Ingresos", style = MaterialTheme.typography.titleMedium)
+                    Text("Revenue Summary", style = MaterialTheme.typography.titleMedium)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
-                            Text("Acumulado cumplido", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Completed revenue", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(BudgetRebalancer.formatCurrency(fulfilledRevenue), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("En curso (aceptado)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Booked pipeline", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(BudgetRebalancer.formatCurrency(pipelineRevenue), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -756,9 +760,9 @@ private fun VendorClientsAndAnalyticsTab(
                     val barTertiary = MaterialTheme.colorScheme.tertiary
                     val counts = listOf(
                         "Pend." to requests.count { it.status == "PENDING" }.toFloat(),
-                        "Acep." to requests.count { it.status == "ACCEPTED" }.toFloat(),
-                        "Cump." to completedRequests.size.toFloat(),
-                        "Tareas" to tasks.count { it.status == "COMPLETED" }.toFloat()
+                        "Accep." to requests.count { it.status == "ACCEPTED" }.toFloat(),
+                        "Done" to completedRequests.size.toFloat(),
+                        "Tasks" to tasks.count { it.status == "COMPLETED" }.toFloat()
                     )
                     val maxVal = (counts.maxOfOrNull { it.second } ?: 1f).coerceAtLeast(1f)
 
@@ -796,14 +800,14 @@ private fun VendorClientsAndAnalyticsTab(
         }
 
         item {
-            Text("Cartera de Clientes (${acceptedOrCompleted.size})", style = MaterialTheme.typography.titleLarge)
+            Text("Client Directory (${acceptedOrCompleted.size})", style = MaterialTheme.typography.titleLarge)
         }
 
         if (acceptedOrCompleted.isEmpty()) {
             item {
                 Card(shape = RoundedCornerShape(16.dp)) {
                     Text(
-                        "Las parejas con solicitudes aceptadas o cumplidas aparecerán aquí con su historial y progreso de tareas.",
+                        "Couples with accepted or completed bookings will appear here along with their task progress.",
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -820,9 +824,9 @@ private fun VendorClientsAndAnalyticsTab(
                         Text(client.coupleName, style = MaterialTheme.typography.titleSmall)
                         Text(client.status, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     }
-                    Text("${client.catalogItemTitle} • Fecha: ${client.eventDate}", style = MaterialTheme.typography.bodySmall)
+                    Text("${client.catalogItemTitle} • Date: ${client.eventDate}", style = MaterialTheme.typography.bodySmall)
                     Text(
-                        "Tareas cumplidas: $doneTasks / ${clientTasks.size} • Acuerdo: ${BudgetRebalancer.formatCurrency(if (client.counterOfferBudget > 0) client.counterOfferBudget else client.proposedBudget)}",
+                        "Tasks completed: $doneTasks / ${clientTasks.size} • Deal: ${BudgetRebalancer.formatCurrency(if (client.counterOfferBudget > 0) client.counterOfferBudget else client.proposedBudget)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

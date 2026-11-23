@@ -274,12 +274,37 @@ test("Owner-scoped subcollections (budget, guests, registry, stationery, vendorT
   );
 });
 
-test("Marketplace vendors & catalog: published queries succeed; unfiltered list fails; only owner mutates", async () => {
+test("Marketplace vendors & catalog: self-get before creation succeeds; cross-user probing fails; published queries succeed; only owner mutates", async () => {
   const vendorDb = testEnv.authenticatedContext(VENDOR_UID).firestore();
   const coupleDb = testEnv.authenticatedContext(COUPLE_UID).firestore();
   const ts = pastDate(8000);
 
-  await assertSucceeds(vendorDb.collection("vendors").doc(VENDOR_UID).set(validVendorPayload(VENDOR_UID, true)));
+  // Regression test: owner reading non-existent vendors/{uid} (observeMyVendorProfile & saveVendorProfile pre-check) MUST succeed
+  const emptySnap = await assertSucceeds(vendorDb.collection("vendors").doc(VENDOR_UID).get());
+  if (emptySnap.exists) throw new Error("Expected non-existent vendor doc before creation");
+
+  // Cross-user probing of non-existent vendor doc MUST fail
+  await assertFails(coupleDb.collection("vendors").doc(VENDOR_UID).get());
+
+  // Owner creates unpublished profile, reads it, then publishes it
+  await assertSucceeds(vendorDb.collection("vendors").doc(VENDOR_UID).set(validVendorPayload(VENDOR_UID, false)));
+  await assertSucceeds(vendorDb.collection("vendors").doc(VENDOR_UID).get());
+  // Couple cannot read unpublished vendor profile
+  await assertFails(coupleDb.collection("vendors").doc(VENDOR_UID).get());
+
+  await assertSucceeds(
+    vendorDb.collection("vendors").doc(VENDOR_UID).update({
+      published: true,
+      updatedAt: pastDate(1000),
+    })
+  );
+  // Couple can read published vendor profile
+  await assertSucceeds(coupleDb.collection("vendors").doc(VENDOR_UID).get());
+
+  // Owner can also check non-existent catalog item under their own vendor doc
+  await assertSucceeds(vendorDb.collection("vendors").doc(VENDOR_UID).collection("catalogItems").doc("pkg_1").get());
+  await assertFails(coupleDb.collection("vendors").doc(VENDOR_UID).collection("catalogItems").doc("pkg_1").get());
+
   await assertSucceeds(
     vendorDb.collection("vendors").doc(VENDOR_UID).collection("catalogItems").doc("pkg_1").set({
       vendorOwnerId: VENDOR_UID,

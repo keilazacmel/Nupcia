@@ -101,7 +101,7 @@ fun onGoogleSignInClicked(
     val clientId = try {
         context.getString(R.string.default_web_client_id)
     } catch (_: Exception) {
-        onAuthError("Configuración de Google Sign-In faltante: default_web_client_id no encontrado.")
+        onAuthError("Missing Google Sign-In configuration: default_web_client_id not found.")
         return
     }
     val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = clientId).build()
@@ -112,21 +112,21 @@ fun onGoogleSignInClicked(
     scope.launch {
         try {
             val activity = context.findActivity()
-                ?: throw IllegalStateException("No se encontró la Activity para iniciar sesión.")
+                ?: throw IllegalStateException("Could not find an Activity to launch sign-in.")
             val cred = credentialManager.getCredential(activity, request).credential
             if (cred is CustomCredential && cred.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val token = GoogleIdTokenCredential.createFrom(cred.data).idToken
                 Firebase.auth.signInWithCredential(GoogleAuthProvider.getCredential(token, null)).await()
                 onAuthSuccess()
             } else {
-                onAuthError("Tipo de credencial inesperado.")
+                onAuthError("Unexpected credential type returned.")
             }
         } catch (e: GetCredentialCancellationException) {
             Log.w(AUTH_TAG, "Google Sign-In flow cancelled or dismissed: ${e.message}", e)
             onAuthCancelled()
         } catch (e: Exception) {
             Log.e(AUTH_TAG, "Google Sign-In failed", e)
-            onAuthError(e.localizedMessage ?: "No se pudo iniciar sesión con Google.")
+            onAuthError(e.localizedMessage ?: "Could not sign in with Google.")
         }
     }
 }

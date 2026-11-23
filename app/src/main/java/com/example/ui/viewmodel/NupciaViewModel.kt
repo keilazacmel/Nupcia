@@ -71,7 +71,7 @@ class NupciaViewModel(
                 if (firestoreError == null && error is CancellationException) throw error
                 val root = firestoreError ?: error
                 Log.w(VM_TAG, "Error observing $label", root)
-                emit(UiState.Error(root.message ?: "Error al sincronizar $label"))
+                emit(UiState.Error(root.message ?: "Failed to sync $label"))
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState.Loading)
 
@@ -83,49 +83,49 @@ class NupciaViewModel(
             if (firestoreError == null && error is CancellationException) throw error
             val root = firestoreError ?: error
             Log.w(VM_TAG, "Error observing $label", root)
-            _errorMessage.value = root.message ?: "Error al cargar $label"
+            _errorMessage.value = root.message ?: "Failed to load $label"
             emit(initial)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), initial)
 
     val userProfileState: StateFlow<UiState<UserProfile?>> =
-        repository.observeUserProfile(currentUserId).toUiState("perfil")
+        repository.observeUserProfile(currentUserId).toUiState("profile")
 
     val wedding: StateFlow<Wedding?> =
-        repository.observeWedding(currentUserId).toSafeState(null, "boda")
+        repository.observeWedding(currentUserId).toSafeState(null, "wedding")
 
     val budgetAllocations: StateFlow<List<BudgetAllocation>> =
-        repository.observeBudgetAllocations(currentUserId).toSafeState(emptyList(), "presupuesto")
+        repository.observeBudgetAllocations(currentUserId).toSafeState(emptyList(), "budget")
 
     val guests: StateFlow<List<Guest>> =
-        repository.observeGuests(currentUserId).toSafeState(emptyList(), "invitados")
+        repository.observeGuests(currentUserId).toSafeState(emptyList(), "guests")
 
     val registryItems: StateFlow<List<RegistryItem>> =
-        repository.observeRegistryItems(currentUserId).toSafeState(emptyList(), "mesa de regalos")
+        repository.observeRegistryItems(currentUserId).toSafeState(emptyList(), "registry")
 
     val stationeryDesigns: StateFlow<List<StationeryDesign>> =
-        repository.observeStationeryDesigns(currentUserId).toSafeState(emptyList(), "papelería")
+        repository.observeStationeryDesigns(currentUserId).toSafeState(emptyList(), "stationery")
 
     val publishedVendors: StateFlow<List<VendorProfile>> =
-        repository.observePublishedVendors(currentUserId).toSafeState(emptyList(), "proveedores")
+        repository.observePublishedVendors(currentUserId).toSafeState(emptyList(), "vendors")
 
     val myVendorProfile: StateFlow<VendorProfile?> =
-        repository.observeMyVendorProfile(currentUserId).toSafeState(null, "mi perfil proveedor")
+        repository.observeMyVendorProfile(currentUserId).toSafeState(null, "vendor profile")
 
     val myCatalogItems: StateFlow<List<VendorCatalogItem>> =
         repository.observeVendorCatalog(currentUserId, currentUserId, includePrivate = true)
-            .toSafeState(emptyList(), "mi catálogo")
+            .toSafeState(emptyList(), "catalog")
 
     val coupleRequests: StateFlow<List<ServiceRequest>> =
-        repository.observeCoupleRequests(currentUserId).toSafeState(emptyList(), "solicitudes pareja")
+        repository.observeCoupleRequests(currentUserId).toSafeState(emptyList(), "couple requests")
 
     val vendorRequests: StateFlow<List<ServiceRequest>> =
-        repository.observeVendorRequests(currentUserId).toSafeState(emptyList(), "solicitudes proveedor")
+        repository.observeVendorRequests(currentUserId).toSafeState(emptyList(), "vendor requests")
 
     val vendorTasks: StateFlow<List<VendorTask>> =
-        repository.observeVendorTasks(currentUserId).toSafeState(emptyList(), "tareas proveedor")
+        repository.observeVendorTasks(currentUserId).toSafeState(emptyList(), "vendor tasks")
 
     val vendorCalendarBlocks: StateFlow<List<VendorCalendarBlock>> =
-        repository.observeVendorCalendar(currentUserId).toSafeState(emptyList(), "calendario proveedor")
+        repository.observeVendorCalendar(currentUserId).toSafeState(emptyList(), "vendor calendar")
 
     // Derived Geospatial & Affinity-Scored Vendors
     val scoredVendors: StateFlow<List<ScoredVendor>> =
@@ -166,7 +166,7 @@ class NupciaViewModel(
             ChatTurn(
                 id = "welcome",
                 fromUser = false,
-                text = "Hola, soy tu Asistente Editorial de Presupuesto en Nupcia. Conozco tu visión, tu ranking de prioridades y los proveedores reales en tu zona. ¿Qué rubro quieres optimizar o cotizar hoy?"
+                text = "Hi! I'm your Nupcia Editorial Wedding & Budget Concierge. I know your vision, priority ranking, and real Utah County vendors. Which category would you like to optimize or quote today?"
             )
         )
     )
@@ -178,6 +178,7 @@ class NupciaViewModel(
     init {
         viewModelScope.launch {
             repository.ensureUserProfileExists(initialDisplayName)
+            repository.migrateLegacySpanishDataToUtahEnglish()
         }
     }
 
@@ -208,12 +209,12 @@ class NupciaViewModel(
             repository.switchWorkspaceMode(mode)
                 .onSuccess {
                     _snackbarMessage.value = if (mode == "VENDOR") {
-                        "Portal de Proveedor activado"
+                        "Vendor Portal activated"
                     } else {
-                        "Portal de Pareja activado"
+                        "Couple Portal activated"
                     }
                 }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo cambiar de portal." }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not switch portal." }
             _isBusy.value = false
         }
     }
@@ -240,9 +241,9 @@ class NupciaViewModel(
                 totalBudget, estimatedGuests, styleTags, colorPalette,
                 ceremonyType, visionExpectations, priorityOrder
             ).onSuccess {
-                _snackbarMessage.value = "¡Tu boda y presupuesto inteligente están listos!"
+                _snackbarMessage.value = "Your wedding plan & smart budget are ready!"
             }.onFailure {
-                _errorMessage.value = it.localizedMessage ?: "No se pudo guardar el onboarding."
+                _errorMessage.value = it.localizedMessage ?: "Could not save onboarding."
             }
             _isBusy.value = false
         }
@@ -281,7 +282,7 @@ class NupciaViewModel(
                     turns + ChatTurn(
                         id = "err_${System.currentTimeMillis()}",
                         fromUser = false,
-                        text = err.localizedMessage ?: "Error al contactar con Gemini AI Logic.",
+                        text = err.localizedMessage ?: "Could not connect to the AI Concierge.",
                         errorBanner = true
                     )
                 }
@@ -298,10 +299,10 @@ class NupciaViewModel(
                     _chatTurns.update { list ->
                         list.map { if (it.id == turnId) it.copy(proposalApplied = true) else it }
                     }
-                    _snackbarMessage.value = "Presupuesto reasignado según tus prioridades"
+                    _snackbarMessage.value = "Budget rebalanced according to your priorities"
                 }
                 .onFailure {
-                    _errorMessage.value = it.localizedMessage ?: "No se pudo aplicar el ajuste."
+                    _errorMessage.value = it.localizedMessage ?: "Could not apply budget adjustment."
                 }
         }
     }
@@ -311,8 +312,8 @@ class NupciaViewModel(
     fun updateAllocation(id: String, allocated: Double, spent: Double, locked: Boolean) {
         viewModelScope.launch {
             repository.updateBudgetAllocation(id, allocated, spent, locked)
-                .onSuccess { _snackbarMessage.value = "Partida actualizada" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al actualizar partida." }
+                .onSuccess { _snackbarMessage.value = "Budget category updated" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to update category." }
         }
     }
 
@@ -328,13 +329,13 @@ class NupciaViewModel(
         val coupleName = if (w != null && w.brideName.isNotBlank()) {
             "${w.brideName} & ${w.partnerName}"
         } else {
-            "Pareja Nupcia"
+            "Nupcia Couple"
         }
         val date = w?.weddingDate ?: "2027-06-19"
         viewModelScope.launch {
             repository.sendServiceRequest(vendor, coupleName, catalogTitle, date, proposedBudget, notes)
-                .onSuccess { _snackbarMessage.value = "Solicitud enviada a ${vendor.businessName}" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo enviar la solicitud." }
+                .onSuccess { _snackbarMessage.value = "Inquiry sent to ${vendor.businessName}" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not send inquiry." }
         }
     }
 
@@ -342,10 +343,10 @@ class NupciaViewModel(
         viewModelScope.launch {
             repository.acceptServiceRequestAtomically(request)
                 .onSuccess {
-                    _snackbarMessage.value = "Solicitud aceptada: fecha bloqueada y 4 tareas operativas creadas"
+                    _snackbarMessage.value = "Inquiry accepted: date locked & 4 operational tasks created"
                 }
                 .onFailure {
-                    _errorMessage.value = it.localizedMessage ?: "No se pudo aceptar la solicitud."
+                    _errorMessage.value = it.localizedMessage ?: "Could not accept inquiry."
                 }
         }
     }
@@ -353,8 +354,8 @@ class NupciaViewModel(
     fun counterOfferAsVendor(requestId: String, amount: Double, notes: String) {
         viewModelScope.launch {
             repository.counterOfferServiceRequest(requestId, amount, notes)
-                .onSuccess { _snackbarMessage.value = "Contraoferta enviada a la pareja" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo enviar contraoferta." }
+                .onSuccess { _snackbarMessage.value = "Counteroffer sent to couple" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not send counteroffer." }
         }
     }
 
@@ -363,14 +364,14 @@ class NupciaViewModel(
             repository.updateServiceRequestStatus(request, newStatus, vendorTasks.value)
                 .onSuccess {
                     _snackbarMessage.value = when (newStatus) {
-                        "COMPLETED" -> "¡Evento marcado como cumplido y sumado a tus métricas!"
-                        "REJECTED" -> "Solicitud rechazada"
-                        "CANCELLED" -> "Solicitud cancelada y agenda liberada"
-                        "ACCEPTED" -> "Contraoferta aceptada"
-                        else -> "Estado actualizado"
+                        "COMPLETED" -> "Event marked completed and added to your analytics!"
+                        "REJECTED" -> "Inquiry declined"
+                        "CANCELLED" -> "Booking cancelled and calendar released"
+                        "ACCEPTED" -> "Counteroffer accepted"
+                        else -> "Status updated"
                     }
                 }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al actualizar solicitud." }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to update request." }
         }
     }
 
@@ -382,7 +383,7 @@ class NupciaViewModel(
         }
         viewModelScope.launch {
             repository.updateVendorTaskStatus(task.id, next)
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al actualizar tarea." }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to update task." }
         }
     }
 
@@ -405,8 +406,8 @@ class NupciaViewModel(
             repository.saveVendorProfile(
                 businessName, category, description, city, lat, lng,
                 coverageRadiusKm, minPrice, maxPrice, styleTags, published
-            ).onSuccess { _snackbarMessage.value = "Perfil de proveedor publicado en el mapa" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo guardar el perfil." }
+            ).onSuccess { _snackbarMessage.value = "Vendor profile saved & published on the Utah County map" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not save profile." }
         }
     }
 
@@ -420,37 +421,37 @@ class NupciaViewModel(
     ) {
         viewModelScope.launch {
             repository.saveCatalogItem(itemId, title, description, basePrice, pricingUnit, active)
-                .onSuccess { _snackbarMessage.value = "Paquete guardado en tu catálogo" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Primero guarda tu perfil de proveedor." }
+                .onSuccess { _snackbarMessage.value = "Service package saved to your catalog" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Save your vendor profile first." }
         }
     }
 
     fun addManualBlock(title: String, date: String) {
         viewModelScope.launch {
             repository.addManualCalendarBlock(title, date)
-                .onSuccess { _snackbarMessage.value = "Fecha bloqueada en tu calendario" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo bloquear fecha." }
+                .onSuccess { _snackbarMessage.value = "Date blocked on your calendar" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not block date." }
         }
     }
 
     fun deleteCalendarBlock(blockId: String) {
         viewModelScope.launch {
             repository.deleteCalendarBlock(blockId)
-                .onSuccess { _snackbarMessage.value = "Bloqueo eliminado" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "No se pudo eliminar bloqueo." }
+                .onSuccess { _snackbarMessage.value = "Calendar block removed" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not remove block." }
         }
     }
 
     fun loadOptInDemoVendors() {
         val w = wedding.value
-        val city = w?.city ?: "Ciudad de México"
-        val lat = w?.lat ?: 19.4326
-        val lng = w?.lng ?: -99.1332
+        val city = w?.city ?: "Provo, UT"
+        val lat = w?.lat ?: 40.2338
+        val lng = w?.lng ?: -111.6585
         viewModelScope.launch {
             _isBusy.value = true
             repository.seedDemoMarketplaceVendors(city, lat, lng)
-                .onSuccess { _snackbarMessage.value = "5 proveedores de demostración cargados cerca de $city" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al cargar proveedores." }
+                .onSuccess { _snackbarMessage.value = "5 Utah County vendors loaded on the map" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Could not load sample vendors." }
             _isBusy.value = false
         }
     }
@@ -474,32 +475,32 @@ class NupciaViewModel(
             repository.saveGuest(
                 guestId, householdName, fullName, partySize, email, phone,
                 postalAddress, rsvpStatus, mealChoice, dietaryNotes, tableNumber
-            ).onSuccess { _snackbarMessage.value = "Invitado guardado" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al guardar invitado." }
+            ).onSuccess { _snackbarMessage.value = "Guest saved" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to save guest." }
         }
     }
 
     fun deleteGuest(guestId: String) {
         viewModelScope.launch {
             repository.deleteGuest(guestId)
-                .onSuccess { _snackbarMessage.value = "Invitado eliminado" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al eliminar invitado." }
+                .onSuccess { _snackbarMessage.value = "Guest removed" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to remove guest." }
         }
     }
 
     fun addRegistryItem(type: String, title: String, desc: String, target: Double) {
         viewModelScope.launch {
             repository.addRegistryItem(type, title, desc, target)
-                .onSuccess { _snackbarMessage.value = "Elemento agregado a tu mesa de regalos" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al crear elemento." }
+                .onSuccess { _snackbarMessage.value = "Added to your wedding registry" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to add registry item." }
         }
     }
 
     fun addContribution(item: RegistryItem, contributorName: String, amount: Double) {
         viewModelScope.launch {
             repository.recordContribution(item, contributorName, amount)
-                .onSuccess { _snackbarMessage.value = "Aporte registrado de $contributorName" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al registrar aporte." }
+                .onSuccess { _snackbarMessage.value = "Contribution recorded from $contributorName" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to record contribution." }
         }
     }
 
@@ -528,12 +529,12 @@ class NupciaViewModel(
                 bodyText, bgColorHex, accentColorHex, fontStyle, bleedValid, proofApproved
             ).onSuccess {
                 _snackbarMessage.value = if (proofApproved) {
-                    "Prueba aprobada y lista para impresión"
+                    "Print proof approved and ready for press"
                 } else {
-                    "Diseño de papelería guardado"
+                    "Stationery draft saved"
                 }
             }.onFailure {
-                _errorMessage.value = it.localizedMessage ?: "Error al guardar papelería."
+                _errorMessage.value = it.localizedMessage ?: "Failed to save stationery."
             }
         }
     }
@@ -549,8 +550,8 @@ class NupciaViewModel(
     ) {
         viewModelScope.launch {
             repository.updateWeddingWebsite(suiteId, headline, story, venueName, schedule, protected, slug)
-                .onSuccess { _snackbarMessage.value = "Sitio web de boda actualizado" }
-                .onFailure { _errorMessage.value = it.localizedMessage ?: "Error al actualizar sitio web." }
+                .onSuccess { _snackbarMessage.value = "Wedding website updated" }
+                .onFailure { _errorMessage.value = it.localizedMessage ?: "Failed to update website." }
         }
     }
 }

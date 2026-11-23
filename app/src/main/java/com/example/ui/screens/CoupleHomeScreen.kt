@@ -76,7 +76,7 @@ fun CoupleHomeScreen(
 ) {
     var editingAlloc by remember { mutableStateOf<BudgetAllocation?>(null) }
 
-    val totalBudget = wedding?.totalBudget ?: 300000.0
+    val totalBudget = wedding?.totalBudget ?: 35000.0
     val totalAllocated = allocations.sumOf { it.allocatedAmount }
     val totalSpent = allocations.sumOf { it.spentAmount }
 
@@ -117,7 +117,7 @@ fun CoupleHomeScreen(
                                 shape = RoundedCornerShape(20.dp)
                             ) {
                                 Text(
-                                    text = "${wedding?.weddingDate ?: "Fecha por definir"} • ${wedding?.city ?: "CDMX"}",
+                                    text = "${wedding?.weddingDate ?: "Date TBD"} • ${wedding?.city ?: "Provo, UT"}",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
@@ -130,7 +130,7 @@ fun CoupleHomeScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Storefront,
-                                        contentDescription = "Portal Proveedor",
+                                        contentDescription = "Switch to Vendor Portal",
                                         tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
@@ -140,7 +140,7 @@ fun CoupleHomeScreen(
                                 ) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Logout,
-                                        contentDescription = "Cerrar sesión",
+                                        contentDescription = "Sign out",
                                         tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
@@ -148,14 +148,14 @@ fun CoupleHomeScreen(
                         }
 
                         Text(
-                            text = "${wedding?.brideName ?: "Novia"} & ${wedding?.partnerName ?: "Pareja"}",
+                            text = "${wedding?.brideName ?: "Bride"} & ${wedding?.partnerName ?: "Partner"}",
                             style = MaterialTheme.typography.displayMedium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
 
                         if (!wedding?.styleTags.isNullOrEmpty()) {
                             Text(
-                                text = "Estilo: ${wedding?.styleTags?.joinToString(" • ")} | ${wedding?.estimatedGuests ?: 120} invitados",
+                                text = "Style: ${wedding?.styleTags?.joinToString(" • ")} | ${wedding?.estimatedGuests ?: 140} guests",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f)
                             )
@@ -168,17 +168,17 @@ fun CoupleHomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             HeroMetricPill(
-                                label = "Presupuesto",
+                                label = "Budget",
                                 value = BudgetRebalancer.formatCurrency(totalBudget),
                                 modifier = Modifier.weight(1f)
                             )
                             HeroMetricPill(
-                                label = "Comprometido",
+                                label = "Committed",
                                 value = BudgetRebalancer.formatCurrency(totalSpent),
                                 modifier = Modifier.weight(1f)
                             )
                             HeroMetricPill(
-                                label = "Avance",
+                                label = "Readiness",
                                 value = "${readiness.score}%",
                                 modifier = Modifier.weight(0.8f)
                             )
@@ -212,7 +212,7 @@ fun CoupleHomeScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Siguiente Mejor Acción",
+                                "Next Best Action",
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
@@ -221,7 +221,7 @@ fun CoupleHomeScreen(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                "Salud financiera ${readiness.budgetHealth}/100",
+                                "Budget health ${readiness.budgetHealth}/100",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -245,7 +245,7 @@ fun CoupleHomeScreen(
                             onClick = { onNavigateTab(readiness.nextBestActionTab) },
                             modifier = Modifier.testTag("next_best_action_button")
                         ) {
-                            Text("Ir ahora")
+                            Text("Go now")
                         }
                         OutlinedButton(
                             onClick = { onNavigateTab(1) },
@@ -253,7 +253,7 @@ fun CoupleHomeScreen(
                         ) {
                             Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Optimizar con IA")
+                            Text("Optimize with AI")
                         }
                     }
                 }
@@ -264,7 +264,7 @@ fun CoupleHomeScreen(
         if (requests.isNotEmpty()) {
             item {
                 Text(
-                    text = "Solicitudes a Proveedores (${requests.size})",
+                    text = "Vendor Inquiries (${requests.size})",
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -282,18 +282,18 @@ fun CoupleHomeScreen(
             ) {
                 Column {
                     Text(
-                        text = "Presupuesto por Prioridades",
+                        text = "Priority Budget Plan",
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Asignado ${BudgetRebalancer.formatCurrency(totalAllocated)} de ${BudgetRebalancer.formatCurrency(totalBudget)}",
+                        text = "Allocated ${BudgetRebalancer.formatCurrency(totalAllocated)} of ${BudgetRebalancer.formatCurrency(totalBudget)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 AssistChip(
                     onClick = { onNavigateTab(1) },
-                    label = { Text("Rebalancear IA") },
+                    label = { Text("AI Rebalance") },
                     leadingIcon = { Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp)) }
                 )
             }
@@ -392,7 +392,7 @@ private fun BudgetAllocationRowCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(alloc.category, style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "${BudgetRebalancer.formatCurrency(alloc.spentAmount)} gastado / ${BudgetRebalancer.formatCurrency(alloc.allocatedAmount)}",
+                        "${BudgetRebalancer.formatCurrency(alloc.spentAmount)} spent / ${BudgetRebalancer.formatCurrency(alloc.allocatedAmount)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -400,12 +400,12 @@ private fun BudgetAllocationRowCard(
                 IconButton(onClick = onToggleLock) {
                     Icon(
                         if (alloc.locked) Icons.Default.Lock else Icons.Default.LockOpen,
-                        contentDescription = if (alloc.locked) "Desbloquear partida" else "Bloquear partida",
+                        contentDescription = if (alloc.locked) "Unlock category" else "Lock category",
                         tint = if (alloc.locked) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onEditClick) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar monto")
+                    Icon(Icons.Default.Edit, contentDescription = "Edit budget amount")
                 }
             }
             LinearProgressIndicator(
@@ -427,12 +427,12 @@ private fun CoupleRequestCard(
     onAction: (ServiceRequest, String) -> Unit
 ) {
     val (statusLabel, badgeColor) = when (req.status) {
-        "ACCEPTED" -> "Aceptada" to MaterialTheme.colorScheme.secondaryContainer
-        "COUNTERED" -> "Contraoferta" to MaterialTheme.colorScheme.tertiaryContainer
-        "COMPLETED" -> "Cumplido" to MaterialTheme.colorScheme.secondaryContainer
-        "REJECTED" -> "Rechazada" to MaterialTheme.colorScheme.errorContainer
-        "CANCELLED" -> "Cancelada" to MaterialTheme.colorScheme.surfaceVariant
-        else -> "Pendiente" to MaterialTheme.colorScheme.primaryContainer
+        "ACCEPTED" -> "Accepted" to MaterialTheme.colorScheme.secondaryContainer
+        "COUNTERED" -> "Counteroffer" to MaterialTheme.colorScheme.tertiaryContainer
+        "COMPLETED" -> "Completed" to MaterialTheme.colorScheme.secondaryContainer
+        "REJECTED" -> "Declined" to MaterialTheme.colorScheme.errorContainer
+        "CANCELLED" -> "Cancelled" to MaterialTheme.colorScheme.surfaceVariant
+        else -> "Pending" to MaterialTheme.colorScheme.primaryContainer
     }
 
     Card(
@@ -465,9 +465,9 @@ private fun CoupleRequestCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             val priceLine = if (req.status == "COUNTERED" && req.counterOfferBudget > 0) {
-                "Propuesto: ${BudgetRebalancer.formatCurrency(req.proposedBudget)} → Contraoferta: ${BudgetRebalancer.formatCurrency(req.counterOfferBudget)}"
+                "Proposed: ${BudgetRebalancer.formatCurrency(req.proposedBudget)} → Counteroffer: ${BudgetRebalancer.formatCurrency(req.counterOfferBudget)}"
             } else {
-                "Presupuesto propuesto: ${BudgetRebalancer.formatCurrency(req.proposedBudget)}"
+                "Proposed budget: ${BudgetRebalancer.formatCurrency(req.proposedBudget)}"
             }
             Text(priceLine, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
 
@@ -477,11 +477,11 @@ private fun CoupleRequestCard(
                         Button(onClick = { onAction(req, "ACCEPTED") }) {
                             Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Aceptar contraoferta")
+                            Text("Accept counteroffer")
                         }
                     }
                     TextButton(onClick = { onAction(req, "CANCELLED") }) {
-                        Text("Cancelar")
+                        Text("Cancel")
                     }
                 }
             }
@@ -501,13 +501,13 @@ private fun EditAllocationDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Editar ${allocation.category}") },
+        title = { Text("Edit ${allocation.category}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = allocatedText,
                     onValueChange = { allocatedText = it.filter(Char::isDigit) },
-                    label = { Text("Presupuesto asignado") },
+                    label = { Text("Allocated budget") },
                     prefix = { Text("$") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
@@ -515,7 +515,7 @@ private fun EditAllocationDialog(
                 OutlinedTextField(
                     value = spentText,
                     onValueChange = { spentText = it.filter(Char::isDigit) },
-                    label = { Text("Monto comprometido / gastado") },
+                    label = { Text("Committed / spent amount") },
                     prefix = { Text("$") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
@@ -525,7 +525,7 @@ private fun EditAllocationDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Bloquear monto al rebalancear IA", style = MaterialTheme.typography.bodySmall)
+                    Text("Lock amount during AI rebalance", style = MaterialTheme.typography.bodySmall)
                     Switch(checked = locked, onCheckedChange = { locked = it })
                 }
             }
@@ -537,8 +537,8 @@ private fun EditAllocationDialog(
                     spentText.toDoubleOrNull() ?: allocation.spentAmount,
                     locked
                 )
-            }) { Text("Guardar") }
+            }) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }

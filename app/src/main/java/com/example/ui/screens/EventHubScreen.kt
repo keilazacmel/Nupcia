@@ -97,10 +97,10 @@ fun EventHubScreen(
     var selectedSubTab by remember { mutableIntStateOf(0) }
     BackHandler(enabled = selectedSubTab != 0) { selectedSubTab = 0 }
     val subTabs = listOf(
-        "Invitados" to Icons.Default.People,
-        "Mesa Regalos" to Icons.Default.CardGiftcard,
-        "Papelería" to Icons.Default.Mail,
-        "Sitio Web" to Icons.Default.Language
+        "Guests" to Icons.Default.People,
+        "Registry" to Icons.Default.CardGiftcard,
+        "Stationery" to Icons.Default.Mail,
+        "Website" to Icons.Default.Language
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -174,9 +174,9 @@ private fun GuestsAndSeatingTab(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                EventStatCard("Confirmados", "$confirmedTotal", MaterialTheme.colorScheme.secondaryContainer, Modifier.weight(1f))
-                EventStatCard("Pendientes", "$pendingTotal", MaterialTheme.colorScheme.tertiaryContainer, Modifier.weight(1f))
-                EventStatCard("Direcciones", "$withAddress/${guests.size}", MaterialTheme.colorScheme.primaryContainer, Modifier.weight(1f))
+                EventStatCard("Confirmed", "$confirmedTotal", MaterialTheme.colorScheme.secondaryContainer, Modifier.weight(1f))
+                EventStatCard("Pending", "$pendingTotal", MaterialTheme.colorScheme.tertiaryContainer, Modifier.weight(1f))
+                EventStatCard("Addresses", "$withAddress/${guests.size}", MaterialTheme.colorScheme.primaryContainer, Modifier.weight(1f))
             }
         }
 
@@ -193,13 +193,13 @@ private fun GuestsAndSeatingTab(
                 ) {
                     Icon(Icons.Default.Add, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Agregar hogar")
+                    Text("Add household")
                 }
                 FilledTonalButton(
                     onClick = { showSeatingView = !showSeatingView },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(if (showSeatingView) "Ver lista RSVP" else "Ver Seating Chart")
+                    Text(if (showSeatingView) "View RSVP List" else "Seating Chart")
                 }
             }
         }
@@ -220,18 +220,18 @@ private fun GuestsAndSeatingTab(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                if (tableNum == 0L) "Sin mesa asignada" else "Mesa #$tableNum",
+                                if (tableNum == 0L) "Unassigned Table" else "Table #$tableNum",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                if (tableNum == 0L) "$seats personas" else "$seats / 8 asientos",
+                                if (tableNum == 0L) "$seats guests" else "$seats / 8 seats",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (seats > 8 && tableNum > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                             )
                         }
                         if (list.isEmpty()) {
-                            Text("Ningún invitado aquí.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("No guests assigned here.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         } else {
                             list.forEach { g ->
                                 Row(
@@ -256,7 +256,7 @@ private fun GuestsAndSeatingTab(
                 item {
                     Card(shape = RoundedCornerShape(16.dp)) {
                         Text(
-                            "Agrega tus hogares e invitados para recolectar direcciones postales, gestionar RSVP, menú y asignar mesas.",
+                            "Add households and guests to collect mailing addresses, track RSVPs, meal selections, and table seating.",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(18.dp)
                         )
@@ -278,33 +278,33 @@ private fun GuestsAndSeatingTab(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("${guest.householdName} — ${guest.fullName}", style = MaterialTheme.typography.titleSmall)
                                 Text(
-                                    "${guest.partySize} pases • Mesa ${if (guest.tableNumber > 0) "#${guest.tableNumber}" else "Sin asignar"} • ${guest.mealChoice}",
+                                    "${guest.partySize} seats • Table ${if (guest.tableNumber > 0) "#${guest.tableNumber}" else "Unassigned"} • ${guest.mealChoice}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             IconButton(onClick = {
-                                val slug = wedding?.slug ?: "nuestra-boda"
+                                val slug = wedding?.slug ?: "our-wedding"
                                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "¡Hola ${guest.fullName}! Comparte tu dirección y confirma tu asistencia en https://nupcia.app/$slug/rsvp?token=${guest.inviteToken}"
+                                        "Hi ${guest.fullName}! Share your mailing address and RSVP for our wedding at https://nupcia.app/$slug/rsvp?token=${guest.inviteToken}"
                                     )
                                 }
-                                context.startActivity(Intent.createChooser(shareIntent, "Compartir enlace RSVP"))
+                                context.startActivity(Intent.createChooser(shareIntent, "Share RSVP link"))
                             }) {
-                                Icon(Icons.Default.Share, contentDescription = "Compartir enlace de dirección y RSVP")
+                                Icon(Icons.Default.Share, contentDescription = "Share address and RSVP link")
                             }
                             IconButton(onClick = { onDeleteGuest(guest.id) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar invitado")
+                                Icon(Icons.Default.Delete, contentDescription = "Delete guest")
                             }
                         }
                         if (guest.postalAddress.isNotBlank()) {
-                            Text("Dirección: ${guest.postalAddress}", style = MaterialTheme.typography.labelSmall)
+                            Text("Address: ${guest.postalAddress}", style = MaterialTheme.typography.labelSmall)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("CONFIRMED" to "Confirmado", "PENDING" to "Pendiente", "DECLINED" to "No asiste").forEach { (code, lbl) ->
+                            listOf("CONFIRMED" to "Confirmed", "PENDING" to "Pending", "DECLINED" to "Declined").forEach { (code, lbl) ->
                                 FilterChip(
                                     selected = guest.rsvpStatus == code,
                                     onClick = {
@@ -359,25 +359,25 @@ private fun GuestEditorDialog(
     var email by remember { mutableStateOf(existing?.email ?: "") }
     var phone by remember { mutableStateOf(existing?.phone ?: "") }
     var address by remember { mutableStateOf(existing?.postalAddress ?: "") }
-    var meal by remember { mutableStateOf(existing?.mealChoice ?: "Menú principal") }
+    var meal by remember { mutableStateOf(existing?.mealChoice ?: "Main Course") }
     var diet by remember { mutableStateOf(existing?.dietaryNotes ?: "") }
     var table by remember { mutableStateOf((existing?.tableNumber ?: 1L).toString()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Nuevo hogar / invitado" else "Editar invitado") },
+        title = { Text(if (existing == null) "New Household / Guest" else "Edit Guest") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(value = household, onValueChange = { household = it }, label = { Text("Familia / Hogar") }, singleLine = true)
-                OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text("Nombre principal") }, singleLine = true)
+                OutlinedTextField(value = household, onValueChange = { household = it }, label = { Text("Family / Household") }, singleLine = true)
+                OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text("Primary Guest Name") }, singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = partySize,
                         onValueChange = { partySize = it.filter(Char::isDigit) },
-                        label = { Text("Pases") },
+                        label = { Text("Seats") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
                         singleLine = true
@@ -385,16 +385,16 @@ private fun GuestEditorDialog(
                     OutlinedTextField(
                         value = table,
                         onValueChange = { table = it.filter(Char::isDigit) },
-                        label = { Text("Mesa #") },
+                        label = { Text("Table #") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
                 }
-                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Dirección postal (para sobres)") }, singleLine = true)
-                OutlinedTextField(value = meal, onValueChange = { meal = it }, label = { Text("Elección de menú") }, singleLine = true)
-                OutlinedTextField(value = diet, onValueChange = { diet = it }, label = { Text("Alergias / Notas dietéticas") }, singleLine = true)
-                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Correo (opcional)") }, singleLine = true)
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Mailing Address (for envelopes)") }, singleLine = true)
+                OutlinedTextField(value = meal, onValueChange = { meal = it }, label = { Text("Meal Choice") }, singleLine = true)
+                OutlinedTextField(value = diet, onValueChange = { diet = it }, label = { Text("Allergies / Dietary Notes") }, singleLine = true)
+                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email (optional)") }, singleLine = true)
             }
         },
         confirmButton = {
@@ -407,9 +407,9 @@ private fun GuestEditorDialog(
                     meal, diet,
                     table.toLongOrNull()?.coerceIn(0L, 100L) ?: 0L
                 )
-            }) { Text("Guardar") }
+            }) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -446,13 +446,13 @@ private fun RegistryAndCashFundsTab(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Recaudado en Mesa & Fondos", style = MaterialTheme.typography.labelMedium)
+                        Text("Registry & Cash Funds Raised", style = MaterialTheme.typography.labelMedium)
                         Text(
                             BudgetRebalancer.formatCurrency(totalCollected),
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text("Meta total: ${BudgetRebalancer.formatCurrency(totalTarget)}", style = MaterialTheme.typography.bodySmall)
+                        Text("Total goal: ${BudgetRebalancer.formatCurrency(totalTarget)}", style = MaterialTheme.typography.bodySmall)
                     }
                     Button(
                         onClick = { showCreate = true },
@@ -460,7 +460,7 @@ private fun RegistryAndCashFundsTab(
                     ) {
                         Icon(Icons.Default.Add, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Nuevo fondo")
+                        Text("New fund")
                     }
                 }
             }
@@ -470,7 +470,7 @@ private fun RegistryAndCashFundsTab(
             item {
                 Card(shape = RoundedCornerShape(16.dp)) {
                     Text(
-                        "Crea fondos en efectivo (Luna de Miel, Hogar) o regalos físicos y lleva el control de aportes y agradecimientos.",
+                        "Create cash funds (Honeymoon, Home Down Payment) or physical gifts and track guest contributions and thank-you notes.",
                         modifier = Modifier.padding(18.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -493,8 +493,8 @@ private fun RegistryAndCashFundsTab(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.title, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                if (item.itemType == "CASH_FUND") "Fondo en efectivo • ${item.contributorCount} aportes"
-                                else "Regalo físico • ${item.contributorCount} aportes",
+                                if (item.itemType == "CASH_FUND") "Cash fund • ${item.contributorCount} gifts"
+                                else "Physical gift • ${item.contributorCount} gifts",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -510,7 +510,7 @@ private fun RegistryAndCashFundsTab(
                     )
                     if (item.lastContributorName.isNotBlank()) {
                         Text(
-                            "Último aporte: ${item.lastContributorName}",
+                            "Latest gift: ${item.lastContributorName}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -521,12 +521,12 @@ private fun RegistryAndCashFundsTab(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         FilledTonalButton(onClick = { contributeTarget = item }) {
-                            Text("Registrar aporte")
+                            Text("Log gift")
                         }
                         FilterChip(
                             selected = item.thankYouSent,
                             onClick = { onToggleThankYou(item.id, !item.thankYouSent) },
-                            label = { Text(if (item.thankYouSent) "Agradecido ✓" else "Agradecer") }
+                            label = { Text(if (item.thankYouSent) "Thanked ✓" else "Send thank-you") }
                         )
                     }
                 }
@@ -538,22 +538,22 @@ private fun RegistryAndCashFundsTab(
         var isCashFund by remember { mutableStateOf(true) }
         var title by remember { mutableStateOf("") }
         var desc by remember { mutableStateOf("") }
-        var target by remember { mutableStateOf("15000") }
+        var target by remember { mutableStateOf("1500") }
         AlertDialog(
             onDismissRequest = { showCreate = false },
-            title = { Text("Agregar a Mesa de Regalos") },
+            title = { Text("Add to Gift Registry") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = isCashFund, onClick = { isCashFund = true }, label = { Text("Fondo en efectivo") })
-                        FilterChip(selected = !isCashFund, onClick = { isCashFund = false }, label = { Text("Regalo físico") })
+                        FilterChip(selected = isCashFund, onClick = { isCashFund = true }, label = { Text("Cash fund") })
+                        FilterChip(selected = !isCashFund, onClick = { isCashFund = false }, label = { Text("Physical gift") })
                     }
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título (ej. Luna de Miel)") }, singleLine = true)
-                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Descripción") }, singleLine = true)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title (e.g. Honeymoon Fund)") }, singleLine = true)
+                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Description") }, singleLine = true)
                     OutlinedTextField(
                         value = target,
                         onValueChange = { target = it.filter(Char::isDigit) },
-                        label = { Text("Meta") },
+                        label = { Text("Goal (USD)") },
                         prefix = { Text("$") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
@@ -562,27 +562,27 @@ private fun RegistryAndCashFundsTab(
             },
             confirmButton = {
                 Button(onClick = {
-                    onAddItem(if (isCashFund) "CASH_FUND" else "PRODUCT", title, desc, target.toDoubleOrNull() ?: 5000.0)
+                    onAddItem(if (isCashFund) "CASH_FUND" else "PRODUCT", title, desc, target.toDoubleOrNull() ?: 500.0)
                     showCreate = false
-                }) { Text("Crear") }
+                }) { Text("Create") }
             },
-            dismissButton = { TextButton(onClick = { showCreate = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { showCreate = false }) { Text("Cancel") } }
         )
     }
 
     contributeTarget?.let { targetItem ->
         var name by remember { mutableStateOf("") }
-        var amount by remember { mutableStateOf("2000") }
+        var amount by remember { mutableStateOf("200") }
         AlertDialog(
             onDismissRequest = { contributeTarget = null },
-            title = { Text("Registrar aporte a ${targetItem.title}") },
+            title = { Text("Log Gift to ${targetItem.title}") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre del invitado") }, singleLine = true)
+                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Guest name") }, singleLine = true)
                     OutlinedTextField(
                         value = amount,
                         onValueChange = { amount = it.filter(Char::isDigit) },
-                        label = { Text("Monto") },
+                        label = { Text("Amount (USD)") },
                         prefix = { Text("$") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
@@ -591,11 +591,11 @@ private fun RegistryAndCashFundsTab(
             },
             confirmButton = {
                 Button(onClick = {
-                    onAddContribution(targetItem, name, amount.toDoubleOrNull() ?: 1000.0)
+                    onAddContribution(targetItem, name, amount.toDoubleOrNull() ?: 100.0)
                     contributeTarget = null
-                }) { Text("Guardar aporte") }
+                }) { Text("Save gift") }
             },
-            dismissButton = { TextButton(onClick = { contributeTarget = null }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { contributeTarget = null }) { Text("Cancel") } }
         )
     }
 }
@@ -619,20 +619,20 @@ private fun StationeryVisualEditorTab(
     }
     var headline by remember(activeDesign, wedding) {
         mutableStateOf(
-            activeDesign?.headline?.ifBlank { "${wedding?.brideName ?: "Novia"} & ${wedding?.partnerName ?: "Pareja"}" }
-                ?: "${wedding?.brideName ?: "Novia"} & ${wedding?.partnerName ?: "Pareja"}"
+            activeDesign?.headline?.ifBlank { "${wedding?.brideName ?: "Emma"} & ${wedding?.partnerName ?: "Liam"}" }
+                ?: "${wedding?.brideName ?: "Emma"} & ${wedding?.partnerName ?: "Liam"}"
         )
     }
     var subheadline by remember(activeDesign, wedding) {
         mutableStateOf(
-            activeDesign?.subheadline?.ifBlank { "${wedding?.weddingDate ?: "2027-06-19"} • ${wedding?.city ?: "CDMX"}" }
-                ?: "${wedding?.weddingDate ?: "2027-06-19"} • ${wedding?.city ?: "CDMX"}"
+            activeDesign?.subheadline?.ifBlank { "${wedding?.weddingDate ?: "2027-06-19"} • ${wedding?.city ?: "Provo, UT"}" }
+                ?: "${wedding?.weddingDate ?: "2027-06-19"} • ${wedding?.city ?: "Provo, UT"}"
         )
     }
     var bodyText by remember(activeDesign) {
         mutableStateOf(
-            activeDesign?.bodyText?.ifBlank { "Con inmensa alegría te invitamos a celebrar nuestra boda." }
-                ?: "Con inmensa alegría te invitamos a celebrar nuestra boda."
+            activeDesign?.bodyText?.ifBlank { "Together with our families, we joyfully invite you to celebrate our wedding in Utah County." }
+                ?: "Together with our families, we joyfully invite you to celebrate our wedding in Utah County."
         )
     }
     var showBleedGuides by remember { mutableStateOf(true) }
@@ -655,10 +655,10 @@ private fun StationeryVisualEditorTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
-                "INVITATION" to "Invitación",
+                "INVITATION" to "Invitation",
                 "SAVE_THE_DATE" to "Save the Date",
-                "MENU" to "Menú",
-                "ENVELOPE" to "Sobre Postal"
+                "MENU" to "Menu",
+                "ENVELOPE" to "Envelope"
             ).forEach { (code, label) ->
                 FilterChip(
                     selected = productType == code,
@@ -709,10 +709,10 @@ private fun StationeryVisualEditorTab(
             ) {
                 Text(
                     text = when (productType) {
-                        "SAVE_THE_DATE" -> "RESERVA LA FECHA"
-                        "MENU" -> "MENÚ DE CELEBRACIÓN"
-                        "ENVELOPE" -> "DESTINATARIO POSTAL"
-                        else -> "INVITACIÓN DE BODA"
+                        "SAVE_THE_DATE" -> "SAVE THE DATE"
+                        "MENU" -> "RECEPTION MENU"
+                        "ENVELOPE" -> "MAILING RECIPIENT"
+                        else -> "WEDDING INVITATION"
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = accentColor
@@ -738,7 +738,7 @@ private fun StationeryVisualEditorTab(
                 Spacer(Modifier.height(10.dp))
                 Text(
                     text = if (productType == "ENVELOPE" && previewGuest != null) {
-                        previewGuest.postalAddress.ifBlank { "Dirección pendiente por recolectar" }
+                        previewGuest.postalAddress.ifBlank { "Mailing address pending collection" }
                     } else bodyText,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF4F4345),
@@ -747,7 +747,7 @@ private fun StationeryVisualEditorTab(
                 if (previewGuest != null && productType != "ENVELOPE") {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Personalizada para: ${previewGuest.householdName} (${previewGuest.partySize} pases)",
+                        text = "Personalized for: ${previewGuest.householdName} (${previewGuest.partySize} seats)",
                         style = MaterialTheme.typography.labelSmall,
                         color = accentColor
                     )
@@ -764,17 +764,17 @@ private fun StationeryVisualEditorTab(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = showBleedGuides, onCheckedChange = { showBleedGuides = it })
                 Spacer(Modifier.width(8.dp))
-                Text("Guía de sangrado (bleed)", style = MaterialTheme.typography.bodySmall)
+                Text("Print bleed guide", style = MaterialTheme.typography.bodySmall)
             }
             if (guests.isNotEmpty()) {
                 TextButton(onClick = { previewGuestIdx += 1 }) {
-                    Text("Siguiente hogar (${(previewGuestIdx % guests.size) + 1}/${guests.size})")
+                    Text("Next household (${(previewGuestIdx % guests.size) + 1}/${guests.size})")
                 }
             }
         }
 
         // Coordinated Suite Picker
-        Text("Suite coordinada", style = MaterialTheme.typography.titleSmall)
+        Text("Coordinated Design Suite", style = MaterialTheme.typography.titleSmall)
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -788,9 +788,9 @@ private fun StationeryVisualEditorTab(
             }
         }
 
-        OutlinedTextField(value = headline, onValueChange = { headline = it }, label = { Text("Título principal") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = subheadline, onValueChange = { subheadline = it }, label = { Text("Fecha y ubicación") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = bodyText, onValueChange = { bodyText = it }, label = { Text("Mensaje de invitación") }, minLines = 2, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = headline, onValueChange = { headline = it }, label = { Text("Main headline") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = subheadline, onValueChange = { subheadline = it }, label = { Text("Date & location") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = bodyText, onValueChange = { bodyText = it }, label = { Text("Invitation message") }, minLines = 2, modifier = Modifier.fillMaxWidth())
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(
@@ -802,7 +802,7 @@ private fun StationeryVisualEditorTab(
                     )
                 },
                 modifier = Modifier.weight(1f)
-            ) { Text("Guardar borrador") }
+            ) { Text("Save draft") }
             Button(
                 onClick = {
                     onSaveDesign(
@@ -817,7 +817,7 @@ private fun StationeryVisualEditorTab(
             ) {
                 Icon(Icons.Default.Verified, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Aprobar prueba")
+                Text("Approve proof")
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -832,11 +832,11 @@ private fun WeddingWebsiteTab(
     onSaveWebsite: (String, String, String, String, String, Boolean, String) -> Unit
 ) {
     val context = LocalContext.current
-    var headline by remember(wedding) { mutableStateOf(wedding?.websiteHeadline ?: "Nos casamos") }
+    var headline by remember(wedding) { mutableStateOf(wedding?.websiteHeadline ?: "We're Getting Married!") }
     var story by remember(wedding) { mutableStateOf(wedding?.websiteStory ?: "") }
     var venueName by remember(wedding) { mutableStateOf(wedding?.websiteVenueName ?: "") }
     var schedule by remember(wedding) { mutableStateOf(wedding?.websiteSchedule ?: "") }
-    var slug by remember(wedding) { mutableStateOf(wedding?.slug ?: "nuestra-boda") }
+    var slug by remember(wedding) { mutableStateOf(wedding?.slug ?: "our-wedding") }
     var isProtected by remember(wedding) { mutableStateOf(wedding?.websiteProtected ?: false) }
 
     Column(
@@ -868,30 +868,30 @@ private fun WeddingWebsiteTab(
                         type = "text/plain"
                         putExtra(
                             Intent.EXTRA_TEXT,
-                            "$headline — Te invitamos a visitar nuestro sitio de boda: https://nupcia.app/$slug"
+                            "$headline — Visit our wedding website for schedule, RSVP & registry: https://nupcia.app/$slug"
                         )
                     }
-                    context.startActivity(Intent.createChooser(shareIntent, "Compartir sitio web de boda"))
+                    context.startActivity(Intent.createChooser(shareIntent, "Share wedding website"))
                 }) {
                     Icon(Icons.Default.Share, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Compartir enlace de boda")
+                    Text("Share wedding link")
                 }
             }
         }
 
-        OutlinedTextField(value = slug, onValueChange = { slug = it.lowercase().replace(" ", "-") }, label = { Text("URL personalizada (slug)") }, prefix = { Text("nupcia.app/") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = headline, onValueChange = { headline = it }, label = { Text("Titular de portada") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = venueName, onValueChange = { venueName = it }, label = { Text("Nombre del Venue") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = schedule, onValueChange = { schedule = it }, label = { Text("Itinerario del evento") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = story, onValueChange = { story = it }, label = { Text("Nuestra historia") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = slug, onValueChange = { slug = it.lowercase().replace(" ", "-") }, label = { Text("Custom URL (slug)") }, prefix = { Text("nupcia.app/") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(value = headline, onValueChange = { headline = it }, label = { Text("Cover headline") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(value = venueName, onValueChange = { venueName = it }, label = { Text("Venue name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(value = schedule, onValueChange = { schedule = it }, label = { Text("Event schedule") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = story, onValueChange = { story = it }, label = { Text("Our story") }, minLines = 3, modifier = Modifier.fillMaxWidth())
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Proteger sitio web con código para invitados", style = MaterialTheme.typography.bodyMedium)
+            Text("Protect website with guest passcode", style = MaterialTheme.typography.bodyMedium)
             Switch(checked = isProtected, onCheckedChange = { isProtected = it })
         }
 
@@ -909,7 +909,7 @@ private fun WeddingWebsiteTab(
         ) {
             Icon(Icons.Default.CheckCircle, null, Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Publicar cambios del sitio web")
+            Text("Publish website changes")
         }
     }
 }

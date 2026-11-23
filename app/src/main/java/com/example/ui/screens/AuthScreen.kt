@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -136,7 +135,6 @@ fun AuthScreen(
                             center = Offset(center.x + r * 0.42f, center.y + 4.dp.toPx()),
                             style = Stroke(width = 4.dp.toPx())
                         )
-                        // Minimalist diamond accent above interlocking rings
                         drawCircle(
                             color = primary,
                             radius = 5.dp.toPx(),
@@ -156,7 +154,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Atelier Digital de Bodas",
+                    text = "Utah County Wedding Planning Studio",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.tertiary
                 )
@@ -186,18 +184,18 @@ fun AuthScreen(
                 ) {
                     FeatureRow(
                         icon = Icons.Default.AutoAwesome,
-                        title = "Asistente IA & Presupuesto Dinámico",
-                        subtitle = "Rebalanceo matemático exacto por prioridades con recomendaciones reales."
+                        title = "AI Concierge & Dynamic Budget",
+                        subtitle = "Priority-weighted budget rebalancing with real local vendor matches."
                     )
                     FeatureRow(
                         icon = Icons.Default.LocationOn,
-                        title = "Mapa Geoespacial & Afinidad",
-                        subtitle = "Descubre venues y proveedores dentro de tu radio de cobertura y estilo."
+                        title = "Utah County Map & Affinity Match",
+                        subtitle = "Discover venues and vendors across Provo, Orem, Lehi, and Provo Canyon."
                     )
                     FeatureRow(
                         icon = Icons.Default.Storefront,
-                        title = "Portal B2B + RSVP & Papelería",
-                        subtitle = "Solicitudes que crean tareas automáticas, mesas, mesa de regalos y pruebas."
+                        title = "Vendor Portal + RSVP & Stationery",
+                        subtitle = "Accepted bookings auto-create tasks, seating charts, cash funds, and print proofs."
                     )
                 }
             }
@@ -264,7 +262,7 @@ fun AuthScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Conectando con Google…")
+                        Text("Connecting with Google…")
                     } else {
                         Text(
                             text = stringResource(R.string.auth_google_button),
@@ -277,7 +275,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Acceso seguro para Parejas y Proveedores • Sincronización en la nube",
+                    text = "Secure access for Couples & Vendors • Real-time cloud sync",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

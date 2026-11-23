@@ -100,7 +100,7 @@ fun AppNavigation() {
         key(user.uid) {
             AuthenticatedNupciaShell(
                 currentUserId = user.uid,
-                initialDisplayName = user.displayName ?: "Novia Nupcia"
+                initialDisplayName = user.displayName ?: "Nupcia Bride"
             )
         }
     }
@@ -238,10 +238,10 @@ private fun AuthenticatedNupciaShell(
                 )
             } else {
                 val navItems = listOf(
-                    Triple("Inicio", Icons.Default.Home, "nav_home"),
-                    Triple("IA", Icons.Default.AutoAwesome, "nav_ai"),
-                    Triple("Mapa", Icons.Default.Map, "nav_map"),
-                    Triple("Evento", Icons.Default.Celebration, "nav_event")
+                    Triple("Home", Icons.Default.Home, "nav_home"),
+                    Triple("AI", Icons.Default.AutoAwesome, "nav_ai"),
+                    Triple("Map", Icons.Default.Map, "nav_map"),
+                    Triple("Event", Icons.Default.Celebration, "nav_event")
                 )
 
                 BackHandler(enabled = selectedCoupleTab != 0) {
